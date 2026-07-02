@@ -2,8 +2,8 @@ import { useState, useMemo } from 'react'
 import { products as defaultProducts, CATEGORIES, SHOP_COLORS } from '../data/products'
 import styles from './SecretAdmin.module.css'
 
-const STORAGE_KEY    = 'pickwise_extra_products'
-const OVERRIDES_KEY  = 'pickwise_overrides'
+// const STORAGE_KEY    = 'pickwise_extra_products'
+// const OVERRIDES_KEY  = 'pickwise_overrides'
 
 const EMPTY = {
   id: null, category: 'kitchen', name: '', image: '', review: '',
@@ -11,12 +11,12 @@ const EMPTY = {
   badges: [], shop: 'Meesho', affiliate_link: '', video_link: '', video_credit: '', is_pick: false,
 }
 
-function load(key) { try { return JSON.parse(localStorage.getItem(key)) || [] } catch { return [] } }
-function loadObj(key) { try { return JSON.parse(localStorage.getItem(key)) || {} } catch { return {} } }
+// function load(key) { try { return JSON.parse(localStorage.getItem(key)) || [] } catch { return [] } }
+// function loadObj(key) { try { return JSON.parse(localStorage.getItem(key)) || {} } catch { return {} } }
 
 export default function SecretAdmin() {
-  const [extra,     setExtra]     = useState(() => load(STORAGE_KEY))
-  const [overrides, setOverrides] = useState(() => loadObj(OVERRIDES_KEY))
+  // const [extra,     setExtra]     = useState(() => load(STORAGE_KEY))
+  // const [overrides, setOverrides] = useState(() => loadObj(OVERRIDES_KEY))
   const [form,      setForm]      = useState({ ...EMPTY })
   const [tab,       setTab]       = useState('list')
   const [mode,      setMode]      = useState('add')   // 'add' | 'edit'
@@ -26,10 +26,11 @@ export default function SecretAdmin() {
   const [generatedCode, setGeneratedCode] = useState('')
 
   // Merge defaults + overrides + extra
-  const allProducts = useMemo(() => {
-    const base = defaultProducts.map(p => overrides[p.id] ? { ...p, ...overrides[p.id] } : p)
-    return [...base, ...extra]
-  }, [extra, overrides])
+  // const allProducts = useMemo(() => {
+  //   const base = defaultProducts.map(p => overrides[p.id] ? { ...p, ...overrides[p.id] } : p)
+  //   return [...base, ...extra]
+  // }, [extra, overrides])
+  const allProducts = defaultProducts
 
   const filtered = useMemo(() => {
     if (!search.trim()) return allProducts
@@ -37,39 +38,40 @@ export default function SecretAdmin() {
     return allProducts.filter(p => p.name.toLowerCase().includes(q) || p.category.includes(q))
   }, [allProducts, search])
 
-  const isExtra    = (id) => extra.find(p => p.id === id)
-  const isBuiltIn  = (id) => defaultProducts.find(p => p.id === id)
-  const isEdited   = (id) => !!overrides[id]
+  // const isExtra    = (id) => extra.find(p => p.id === id)
+  // const isBuiltIn  = (id) => defaultProducts.find(p => p.id === id)
+  // const isEdited   = (id) => !!overrides[id]
+  const isBuiltIn = (id) => defaultProducts.some(p => p.id === id)
 
   // ── Save (add or update) ─────────────────────────────────────
-  const save = () => {
-    if (!form.name || !form.price || !form.affiliate_link) {
-      alert('Name, Price and Affiliate Link are required!'); return
-    }
-    if (mode === 'edit' && isBuiltIn(editingId)) {
-      // Save as override
-      const newOverrides = { ...overrides, [editingId]: { ...form } }
-      localStorage.setItem(OVERRIDES_KEY, JSON.stringify(newOverrides))
-      setOverrides(newOverrides)
-      setSaved('✅ Product updated!')
-    } else if (mode === 'edit' && isExtra(editingId)) {
-      // Update in extra list
-      const updated = extra.map(p => p.id === editingId ? { ...form, id: editingId } : p)
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
-      setExtra(updated)
-      setSaved('✅ Product updated!')
-    } else {
-      // New product
-      const newProduct = { ...form, id: Date.now() }
-      const updated = [...extra, newProduct]
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
-      setExtra(updated)
-      setSaved('✅ Product added! Refresh home page to see it.')
-    }
-    resetForm()
-    setTimeout(() => setSaved(''), 3000)
-    setTab('list')
-  }
+  // const save = () => {
+  //   if (!form.name || !form.price || !form.affiliate_link) {
+  //     alert('Name, Price and Affiliate Link are required!'); return
+  //   }
+  //   if (mode === 'edit' && isBuiltIn(editingId)) {
+  //     // Save as override
+  //     const newOverrides = { ...overrides, [editingId]: { ...form } }
+  //     localStorage.setItem(OVERRIDES_KEY, JSON.stringify(newOverrides))
+  //     setOverrides(newOverrides)
+  //     setSaved('✅ Product updated!')
+  //   } else if (mode === 'edit' && isExtra(editingId)) {
+  //     // Update in extra list
+  //     const updated = extra.map(p => p.id === editingId ? { ...form, id: editingId } : p)
+  //     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+  //     setExtra(updated)
+  //     setSaved('✅ Product updated!')
+  //   } else {
+  //     // New product
+  //     const newProduct = { ...form, id: Date.now() }
+  //     const updated = [...extra, newProduct]
+  //     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+  //     setExtra(updated)
+  //     setSaved('✅ Product added! Refresh home page to see it.')
+  //   }
+  //   resetForm()
+  //   setTimeout(() => setSaved(''), 3000)
+  //   setTab('list')
+  // }
 
   const resetForm = () => {
     setForm({ ...EMPTY })
@@ -87,21 +89,21 @@ export default function SecretAdmin() {
   }
 
   // ── Delete ───────────────────────────────────────────────────
-  const remove = (id) => {
-    if (!confirm('Remove this product from the site?')) return
-    if (isExtra(id)) {
-      const updated = extra.filter(p => p.id !== id)
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
-      setExtra(updated)
-    }
-    if (isEdited(id)) {
-      const { [id]: _, ...rest } = overrides
-      localStorage.setItem(OVERRIDES_KEY, JSON.stringify(rest))
-      setOverrides(rest)
-    }
-    setSaved('🗑 Product removed.')
-    setTimeout(() => setSaved(''), 2500)
-  }
+  // const remove = (id) => {
+  //   if (!confirm('Remove this product from the site?')) return
+  //   if (isExtra(id)) {
+  //     const updated = extra.filter(p => p.id !== id)
+  //     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+  //     setExtra(updated)
+  //   }
+  //   if (isEdited(id)) {
+  //     const { [id]: _, ...rest } = overrides
+  //     localStorage.setItem(OVERRIDES_KEY, JSON.stringify(rest))
+  //     setOverrides(rest)
+  //   }
+  //   setSaved('🗑 Product removed.')
+  //   setTimeout(() => setSaved(''), 2500)
+  // }
 
   const generateProductCode = () => {
 
@@ -110,11 +112,16 @@ export default function SecretAdmin() {
     return;
   }
 
+  // const maxId = Math.max(
+  //   ...defaultProducts.map(p => p.id),
+  //   ...extra.map(p => p.id),
+  //   0
+  // );
+
   const maxId = Math.max(
-    ...defaultProducts.map(p => p.id),
-    ...extra.map(p => p.id),
-    0
-  );
+  ...defaultProducts.map(p => p.id),
+  0
+);
 
   const id = mode === "edit" ? editingId : maxId + 1;
 
@@ -146,14 +153,14 @@ const copyCode = () => {
 };
 
   // ── Reset override (restore built-in) ────────────────────────
-  const resetOverride = (id) => {
-    if (!confirm('Restore this product to its original details?')) return
-    const { [id]: _, ...rest } = overrides
-    localStorage.setItem(OVERRIDES_KEY, JSON.stringify(rest))
-    setOverrides(rest)
-    setSaved('↩️ Product restored to original.')
-    setTimeout(() => setSaved(''), 2500)
-  }
+  // const resetOverride = (id) => {
+  //   if (!confirm('Restore this product to its original details?')) return
+  //   const { [id]: _, ...rest } = overrides
+  //   localStorage.setItem(OVERRIDES_KEY, JSON.stringify(rest))
+  //   setOverrides(rest)
+  //   setSaved('↩️ Product restored to original.')
+  //   setTimeout(() => setSaved(''), 2500)
+  // }
 
   const toggle = (badge) => {
     setForm(f => ({ ...f, badges: f.badges.includes(badge) ? f.badges.filter(b => b !== badge) : [...f.badges, badge] }))
@@ -178,12 +185,40 @@ const copyCode = () => {
         {saved && <div className={styles.successBanner}>{saved}</div>}
 
         {/* Stats */}
-        <div className={styles.statsRow}>
+        {/* <div className={styles.statsRow}>
           <div className={styles.statBox}><span className={styles.statN}>{allProducts.length}</span><span className={styles.statL}>Total products</span></div>
           <div className={styles.statBox}><span className={styles.statN}>{extra.length}</span><span className={styles.statL}>Added by you</span></div>
           <div className={styles.statBox}><span className={styles.statN}>{Object.keys(overrides).length}</span><span className={styles.statL}>Edited originals</span></div>
           <div className={styles.statBox}><span className={styles.statN}>{allProducts.filter(p=>p.is_pick).length}</span><span className={styles.statL}>Favourites</span></div>
-        </div>
+        </div> */}
+
+        <div className={styles.statsRow}>
+  <div className={styles.statBox}>
+    <span className={styles.statN}>{allProducts.length}</span>
+    <span className={styles.statL}>Total products</span>
+  </div>
+
+  <div className={styles.statBox}>
+    <span className={styles.statN}>
+      {allProducts.filter(p => p.category === 'kitchen').length}
+    </span>
+    <span className={styles.statL}>Kitchen Products</span>
+  </div>
+
+  <div className={styles.statBox}>
+    <span className={styles.statN}>
+      {allProducts.filter(p => p.video_link).length}
+    </span>
+    <span className={styles.statL}>With Videos</span>
+  </div>
+
+  <div className={styles.statBox}>
+    <span className={styles.statN}>
+      {allProducts.filter(p => p.is_pick).length}
+    </span>
+    <span className={styles.statL}>Favourites</span>
+  </div>
+</div>
 
         {/* Tabs */}
         <div className={styles.tabs}>
@@ -204,8 +239,8 @@ const copyCode = () => {
             <div className={styles.productList}>
               {filtered.map(p => {
                 const shopStyle = { background: SHOP_COLORS[p.shop]?.bg, color: SHOP_COLORS[p.shop]?.text }
-                const canDelete = !!isExtra(p.id)
-                const canReset  = !!isEdited(p.id) && !!isBuiltIn(p.id)
+                // const canDelete = !!isExtra(p.id)
+                // const canReset  = !!isEdited(p.id) && !!isBuiltIn(p.id)
                 return (
                   <div key={p.id} className={styles.productRow}>
                     <div className={styles.productInfo}>
@@ -216,8 +251,8 @@ const copyCode = () => {
                       <div className={styles.productDetails}>
                         <div className={styles.productName}>
                           {p.name}
-                          {isEdited(p.id) && <span className={styles.editedBadge}>✏️ edited</span>}
-                          {isExtra(p.id)  && <span className={styles.addedBadge}>🆕 added by you</span>}
+                          {/* {isEdited(p.id) && <span className={styles.editedBadge}>✏️ edited</span>}
+                          {isExtra(p.id)  && <span className={styles.addedBadge}>🆕 added by you</span>} */}
                         </div>
                         <div className={styles.productMeta}>
                           <span className={styles.catTag}>{p.category}</span>
@@ -239,16 +274,16 @@ const copyCode = () => {
                       <button className={styles.editBtn} onClick={() => startEdit(p)} title="Edit this product">
                         ✏️ Edit
                       </button>
-                      {canDelete && (
+                      {/* {canDelete && (
                         <button className={styles.deleteBtn} onClick={() => remove(p.id)} title="Delete product">
                           🗑 Delete
                         </button>
-                      )}
-                      {canReset && (
+                      )} */}
+                      {/* {canReset && (
                         <button className={styles.resetOverrideBtn} onClick={() => resetOverride(p.id)} title="Restore original">
                           ↩️ Restore
                         </button>
-                      )}
+                      )} */}
                     </div>
                   </div>
                 )
@@ -261,11 +296,11 @@ const copyCode = () => {
         {tab === 'form' && (
           <div className={styles.form}>
             <h2 className={styles.formHeading}>{formTitle}</h2>
-            {mode === 'edit' && isBuiltIn(editingId) && (
+            {/* {mode === 'edit' && isBuiltIn(editingId) && (
               <div className={styles.editNote}>
                 📌 You are editing a built-in product. Your changes will be saved as an override — the original is safe and can be restored anytime.
               </div>
-            )}
+            )} */}
 
             <div className={styles.formGrid}>
               <div className={styles.field}>
