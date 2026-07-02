@@ -4,7 +4,7 @@ import styles from './SecretAdmin.module.css'
 
 const STORAGE_KEY    = 'pickwise_extra_products'
 const OVERRIDES_KEY  = 'pickwise_overrides'
-
+const [generatedCode, setGeneratedCode] = useState('')
 const EMPTY = {
   id: null, category: 'kitchen', name: '', image: '', review: '',
   rating: 4.5, reviews_count: 100, price: '', original_price: '', savings: '',
@@ -101,6 +101,48 @@ export default function SecretAdmin() {
     setSaved('🗑 Product removed.')
     setTimeout(() => setSaved(''), 2500)
   }
+
+  const generateProductCode = () => {
+
+  if (!form.name || !form.price || !form.affiliate_link) {
+    alert("Name, Price and Affiliate Link are required!");
+    return;
+  }
+
+  const maxId = Math.max(
+    ...defaultProducts.map(p => p.id),
+    ...extra.map(p => p.id),
+    0
+  );
+
+  const id = mode === "edit" ? editingId : maxId + 1;
+
+  const code = `{
+  id: ${id},
+  category: '${form.category}',
+  name: '${form.name.replace(/'/g, "\\'")}',
+  image: '${form.image}',
+  review: '${form.review.replace(/'/g, "\\'")}',
+  rating: ${form.rating},
+  reviews_count: ${form.reviews_count},
+  price: '${form.price}',
+  original_price: '${form.original_price}',
+  savings: '${form.savings}',
+  badges: ${JSON.stringify(form.badges)},
+  shop: '${form.shop}',
+  affiliate_link: '${form.affiliate_link}',
+  video_link: '${form.video_link}',
+  video_credit: '${form.video_credit}',
+  is_pick: ${form.is_pick},
+},`;
+
+  setGeneratedCode(code);
+};
+
+const copyCode = () => {
+  navigator.clipboard.writeText(generatedCode);
+  alert("✅ Product code copied to clipboard!");
+};
 
   // ── Reset override (restore built-in) ────────────────────────
   const resetOverride = (id) => {
@@ -334,13 +376,60 @@ export default function SecretAdmin() {
             </div>
 
             <div className={styles.formActions}>
-              <button className={styles.saveBtn} onClick={save}>
+              {/* <button className={styles.saveBtn} onClick={save}>
                 {mode === 'edit' ? '💾 Save Changes' : '✅ Add Product to Site'}
-              </button>
+              </button> */}
+
+              <div className={styles.formActions}>
+
+  <button
+    className={styles.generateBtn}
+    onClick={generateProductCode}
+    type="button"
+  >
+    📄 Generate Product Code
+  </button>
+
+  <button
+    className={styles.copyBtn}
+    onClick={copyCode}
+    type="button"
+    disabled={!generatedCode}
+  >
+    📋 Copy Code
+  </button>
+
+  <button
+    className={styles.resetBtn}
+    onClick={() => {
+      resetForm()
+      setGeneratedCode('')
+    }}
+    type="button"
+  >
+    🧹 Clear Form
+  </button>
+
+</div>
               <button className={styles.resetBtn} onClick={() => { resetForm(); setTab('list') }}>
                 ← Cancel
               </button>
             </div>
+
+            {generatedCode && (
+  <div className={styles.codeBox}>
+
+    <h3>Generated Product Code</h3>
+
+    <textarea
+      value={generatedCode}
+      readOnly
+      rows={18}
+      className={styles.codeArea}
+    />
+
+  </div>
+)}
 
             <div className={styles.helpBox}>
               <strong>📲 Meesho affiliate link:</strong> Open Meesho app → Find product → Tap Share (📤) → "Share & Earn" → Copy link<br /><br />
