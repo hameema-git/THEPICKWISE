@@ -148,7 +148,7 @@ export const products = [
     video_credit: 'Kitchen Finds India', is_pick: true,
   },
   {
-  id: 2,
+  id: 12,
   category: 'kitchen',
   name: 'Silicone Pinch Grip Mitts | Microwave Oven Heat Resistant Gripper Kitchen Pot Holder (GREEN)',
   image: 'https://images.meesho.com/images/products/539730450/ladkh_512.avif?width=512',
