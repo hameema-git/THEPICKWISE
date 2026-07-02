@@ -1,0 +1,18 @@
+.nav { background: var(--navy); position: sticky; top: 0; z-index: 200; box-shadow: 0 2px 20px rgba(0,0,0,0.3); }
+.inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 62px; gap: 0.75rem; }
+.logoWrap { display: flex; align-items: center; flex-shrink: 0; }
+.links { display: flex; align-items: center; gap: 0.2rem; margin-left: auto; flex-wrap: wrap; }
+.link { color: #94a3b8; font-size: 0.84rem; font-weight: 500; padding: 0.42rem 0.8rem; border-radius: 8px; transition: all 0.2s; }
+.link:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.link.active { background: var(--red); color: #fff; }
+.instaBtn { background: linear-gradient(135deg,#f4a261,#e63946,#7209b7); color: #fff; font-size: 0.8rem; font-weight: 700; padding: 0.42rem 1rem; border-radius: 20px; transition: opacity 0.2s; }
+.instaBtn:hover { opacity: 0.88; }
+.installBtn { background: var(--teal); color: #1a1a2e; font-size: 0.8rem; font-weight: 700; padding: 0.42rem 1rem; border-radius: 20px; border: none; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+.installBtn:hover { filter: brightness(0.9); }
+.burger { display: none; flex-direction: column; gap: 5px; margin-left: auto; padding: 4px; }
+.burger span { display: block; width: 22px; height: 2px; background: #fff; border-radius: 2px; }
+.mobileMenu { background: var(--navy2); border-top: 1px solid rgba(255,255,255,0.06); padding: 0.5rem 0 1rem; display: flex; flex-direction: column; }
+.mobileLink { color: #94a3b8; font-size: 0.9rem; font-weight: 500; padding: 0.75rem 1.5rem; transition: all 0.15s; }
+.mobileLink:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.mobileLinkInstall { color: var(--teal); font-size: 0.9rem; font-weight: 700; padding: 0.75rem 1.5rem; text-align: left; background: none; border: none; cursor: pointer; }
+@media (max-width: 768px) { .links { display: none; } .burger { display: flex; } }
