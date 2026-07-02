@@ -4,7 +4,7 @@ import styles from './SecretAdmin.module.css'
 
 const STORAGE_KEY    = 'pickwise_extra_products'
 const OVERRIDES_KEY  = 'pickwise_overrides'
-const [generatedCode, setGeneratedCode] = useState('')
+
 const EMPTY = {
   id: null, category: 'kitchen', name: '', image: '', review: '',
   rating: 4.5, reviews_count: 100, price: '', original_price: '', savings: '',
@@ -23,6 +23,7 @@ export default function SecretAdmin() {
   const [editingId, setEditingId] = useState(null)
   const [saved,     setSaved]     = useState('')
   const [search,    setSearch]    = useState('')
+  const [generatedCode, setGeneratedCode] = useState('')
 
   // Merge defaults + overrides + extra
   const allProducts = useMemo(() => {
