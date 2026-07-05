@@ -1,15 +1,19 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { SHOP_COLORS } from '../data/products'
+import { SHOP_COLORS } from '../constants/shopColors'
+import * as analyticsService from '../services/analyticsService'
 import styles from './ProductCard.module.css'
 
-const CAT_STYLE = {
-  kitchen:{ bg:'#fff8f0', color:'#c05621' }, tech:{ bg:'#eff6ff', color:'#1d4ed8' },
-  home:   { bg:'#f0fdf4', color:'#15803d' }, beauty:{ bg:'#fdf4ff', color:'#9333ea' },
-  kids:   { bg:'#fff7ed', color:'#d97706' }, fitness:{ bg:'#f0fdfa', color:'#0f766e' },
-}
 const BADGE_MAP = {
   deal:{ label:'🔥 Deal', cls:'deal' }, new:{ label:'✨ New', cls:'new' }, fav:{ label:'❤️ Fav', cls:'fav' }
+}
+
+// Derives a soft chip background from the category's stored hex color,
+// so new categories created in Studio automatically get a matching chip
+// with no code change needed.
+function categoryChipStyle(color) {
+  const hex = color || '#64748b'
+  return { background: `${hex}1A`, color: hex }
 }
 
 function Stars({ rating }) {
@@ -55,18 +59,23 @@ function useLikes(id) {
 export default function ProductCard({ product, onVideoOpen }) {
   const [imgErr, setImgErr] = useState(false)
   const { likes, dislikes, vote: userVote, vote } = useLikes(product.id)
-  const cat  = CAT_STYLE[product.category]  || { bg:'#f1f5f9', color:'#475569' }
-  const shop = SHOP_COLORS[product.shop]    || { bg:'#64748b', text:'#fff' }
+  const cat  = categoryChipStyle(product.categories?.color)
+  const shop = SHOP_COLORS[product.shop] || { bg:'#64748b', text:'#fff' }
+
+  const handleBuyClick = () => {
+    // Fire-and-forget — don't block the redirect on the click log.
+    analyticsService.logClick(product.id).catch(() => {})
+  }
 
   return (
     <article className={styles.card}>
       <div className={styles.imgWrap}>
-        {imgErr
+        {imgErr || !product.image_url
           ? <div className={styles.imgFallback}>📦</div>
-          : <img src={product.image} alt={product.name} loading="lazy" onError={() => setImgErr(true)} />
+          : <img src={product.image_url} alt={product.name} loading="lazy" onError={() => setImgErr(true)} />
         }
         <div className={styles.badges}>
-          {product.badges.slice(0,2).map(b => BADGE_MAP[b] && (
+          {(product.badges || []).slice(0,2).map(b => BADGE_MAP[b] && (
             <span key={b} className={`${styles.badge} ${styles[BADGE_MAP[b].cls]}`}>{BADGE_MAP[b].label}</span>
           ))}
         </div>
@@ -81,7 +90,9 @@ export default function ProductCard({ product, onVideoOpen }) {
 
       <div className={styles.body}>
         <div className={styles.topRow}>
-          <span className={styles.cat} style={{ background: cat.bg, color: cat.color }}>{product.category}</span>
+          <span className={styles.cat} style={{ background: cat.background, color: cat.color }}>
+            {product.categories?.emoji} {product.categories?.name || 'Uncategorized'}
+          </span>
           <span className={styles.shop} style={{ background: shop.bg, color: shop.text }}>{product.shop}</span>
         </div>
 
@@ -93,7 +104,7 @@ export default function ProductCard({ product, onVideoOpen }) {
 
         <div className={styles.metaRow}>
           <Stars rating={product.rating} />
-          <span className={styles.reviewCount}>({product.reviews_count.toLocaleString()})</span>
+          <span className={styles.reviewCount}>({(product.reviews_count || 0).toLocaleString()})</span>
         </div>
 
         <div className={styles.priceRow}>
@@ -117,7 +128,7 @@ export default function ProductCard({ product, onVideoOpen }) {
         </div>
 
         <a href={product.affiliate_link} target="_blank" rel="nofollow noopener noreferrer"
-          className={styles.btnBuy} style={{ background: shop.bg }}>
+          className={styles.btnBuy} style={{ background: shop.bg }} onClick={handleBuyClick}>
           Buy on {product.shop} →
         </a>
 

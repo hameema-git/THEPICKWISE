@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useProducts } from '../hooks/useProducts'
-import { CATEGORIES } from '../data/products'
+import { useCategories } from '../hooks/useCategories'
+import * as settingsService from '../services/settingsService'
 import ProductCard from '../components/ProductCard'
 import VideoModal from '../components/VideoModal'
+import Seo from '../components/Seo'
 import styles from './Home.module.css'
 
 const FAQS = [
@@ -15,12 +17,22 @@ const FAQS = [
 ]
 
 export default function Home() {
-  const { filtered, picks, category, setCategory, search, setSearch } = useProducts()
+  const { filtered, picks, category, setCategory, search, setSearch, loading } = useProducts()
+  const { categories } = useCategories()
   const [video, setVideo]   = useState(null)
   const [openFaq, setOpenFaq] = useState(null)
+  const [settings, setSettings] = useState(null)
+
+  useEffect(() => { settingsService.get().then(setSettings).catch(() => {}) }, [])
 
   return (
     <>
+      <Seo
+        title={settings?.seo_title}
+        description={settings?.seo_description || 'Real product reviews with video. Tested by me. Trusted for you.'}
+        path="/"
+        rawTitle
+      />
       {/* HERO */}
       <section className={styles.hero}>
         <div className={styles.heroBlobs}>
@@ -65,11 +77,16 @@ export default function Home() {
       <div className={styles.catNav} id="products">
         <div className={styles.inner}>
           <div className={styles.catScroll}>
-            {CATEGORIES.map(c=>(
+            <button
+              className={`${styles.catBtn} ${category==='all'?styles.catActive:''}`}
+              onClick={()=>setCategory('all')}>
+              🌟 All
+            </button>
+            {categories.map(c=>(
               <button key={c.id}
                 className={`${styles.catBtn} ${category===c.id?styles.catActive:''}`}
                 onClick={()=>setCategory(c.id)}>
-                {c.label}
+                {c.emoji} {c.name}
               </button>
             ))}
           </div>
@@ -89,7 +106,9 @@ export default function Home() {
             <h2 className={styles.allTitle}>{search?`"${search}"`:'All Products'}</h2>
             <span className={styles.countPill}>{filtered.length} products</span>
           </div>
-          {filtered.length === 0
+          {loading
+            ? <p className={styles.empty}>Loading…</p>
+            : filtered.length === 0
             ? <div className={styles.empty}>
                 <p>🔍</p>
                 <p className={styles.emptyTitle}>No products found</p>
@@ -117,7 +136,7 @@ export default function Home() {
               <div key={title} className={styles.howCard}>
                 <div className={styles.howIcon}>{icon}</div>
                 <div className={styles.howTitle}>{title}</div>
-                {/* <p className={styles.howDesc}>{desc}</p> */}
+                <p className={styles.howDesc}>{desc}</p>
               </div>
             ))}
           </div>

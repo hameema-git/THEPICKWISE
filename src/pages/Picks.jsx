@@ -1,29 +1,28 @@
-import { useState, useMemo } from 'react'
-import { products as defaultProducts } from '../data/products'
+import { useState, useEffect } from 'react'
+import * as publicProductsService from '../services/publicProductsService'
 import ProductCard from '../components/ProductCard'
 import VideoModal from '../components/VideoModal'
+import Seo from '../components/Seo'
 import styles from './Picks.module.css'
 
-const STORAGE_KEY   = 'pickwise_extra_products'
-const OVERRIDES_KEY = 'pickwise_overrides'
-
-function getAllProducts() {
-  try {
-    const overrides = JSON.parse(localStorage.getItem(OVERRIDES_KEY)) || {}
-    const extra     = JSON.parse(localStorage.getItem(STORAGE_KEY))   || []
-    const base = defaultProducts.map(p =>
-      overrides[p.id] ? { ...p, ...overrides[p.id] } : p
-    )
-    return [...base, ...extra]
-  } catch { return [...defaultProducts] }
-}
-
 export default function Picks() {
-  const picks = useMemo(() => getAllProducts().filter(p => p.is_pick), [])
+  const [picks, setPicks] = useState([])
+  const [loading, setLoading] = useState(true)
   const [video, setVideo] = useState(null)
+
+  useEffect(() => {
+    publicProductsService.getPicks()
+      .then(setPicks)
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <>
+      <Seo
+        title="My Personal Favourites"
+        description="Products I genuinely love and use every day — the highest quality, best-value picks."
+        path="/picks"
+      />
       <section className={styles.hero}>
         <div className={styles.inner}>
           <span className={styles.tag}>⭐ Editor's choice</span>
@@ -33,7 +32,7 @@ export default function Picks() {
       </section>
       <section className={styles.section}>
         <div className={styles.inner}>
-          <p className={styles.count}>{picks.length} favourite products</p>
+          <p className={styles.count}>{loading ? 'Loading…' : `${picks.length} favourite products`}</p>
           <div className={styles.grid}>
             {picks.map(p => <ProductCard key={p.id} product={p} onVideoOpen={(u,c) => setVideo({url:u,credit:c})} />)}
           </div>

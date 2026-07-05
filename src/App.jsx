@@ -1,5 +1,5 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, Suspense, lazy } from 'react'
 import Navbar        from './components/Navbar'
 import Footer        from './components/Footer'
 import Home          from './pages/Home'
@@ -7,12 +7,25 @@ import Picks         from './pages/Picks'
 import ProductDetail from './pages/ProductDetail'
 import Disclosure    from './pages/Disclosure'
 import Privacy       from './pages/Privacy'
-import SecretAdmin   from './pages/SecretAdmin'
+import ProtectedRoute from './components/studio/ProtectedRoute'
+
+// Studio is only ever needed by the creator, never by visitors — lazy-loading
+// it keeps its code (forms, Studio nav, etc.) out of the public site's bundle.
+const StudioLogin = lazy(() => import('./pages/studio/Login'))
+const Dashboard    = lazy(() => import('./pages/studio/Dashboard'))
+const Products     = lazy(() => import('./pages/studio/Products'))
+const ProductForm  = lazy(() => import('./pages/studio/ProductForm'))
+const Categories   = lazy(() => import('./pages/studio/Categories'))
+const Settings     = lazy(() => import('./pages/studio/Settings'))
 
 function ScrollTop() {
   const { pathname } = useLocation()
   useEffect(() => window.scrollTo(0,0), [pathname])
   return null
+}
+
+function StudioFallback() {
+  return <div style={{minHeight:'60vh',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--muted)'}}>Loading…</div>
 }
 
 function NotFound() {
@@ -27,10 +40,13 @@ function NotFound() {
 }
 
 export default function App() {
+  const { pathname } = useLocation()
+  const isStudio = pathname.startsWith('/studio')
+
   return (
     <>
       <ScrollTop />
-      <Navbar />
+      {!isStudio && <Navbar />}
       <main>
         <Routes>
           <Route path="/"                         element={<Home />} />
@@ -38,12 +54,34 @@ export default function App() {
           <Route path="/product/:id"              element={<ProductDetail />} />
           <Route path="/disclosure"               element={<Disclosure />} />
           <Route path="/privacy"                  element={<Privacy />} />
-          {/* SECRET ADMIN — not linked anywhere, URL only */}
-          <Route path="/manage-pickwise-2025"     element={<SecretAdmin />} />
+
+          {/* Creator Studio — real auth, no more secret URLs, lazy-loaded */}
+          <Route path="/studio/login" element={
+            <Suspense fallback={<StudioFallback />}><StudioLogin /></Suspense>
+          } />
+          <Route path="/studio" element={
+            <ProtectedRoute><Suspense fallback={<StudioFallback />}><Dashboard /></Suspense></ProtectedRoute>
+          } />
+          <Route path="/studio/products" element={
+            <ProtectedRoute><Suspense fallback={<StudioFallback />}><Products /></Suspense></ProtectedRoute>
+          } />
+          <Route path="/studio/products/new" element={
+            <ProtectedRoute><Suspense fallback={<StudioFallback />}><ProductForm /></Suspense></ProtectedRoute>
+          } />
+          <Route path="/studio/products/:id/edit" element={
+            <ProtectedRoute><Suspense fallback={<StudioFallback />}><ProductForm /></Suspense></ProtectedRoute>
+          } />
+          <Route path="/studio/categories" element={
+            <ProtectedRoute><Suspense fallback={<StudioFallback />}><Categories /></Suspense></ProtectedRoute>
+          } />
+          <Route path="/studio/settings" element={
+            <ProtectedRoute><Suspense fallback={<StudioFallback />}><Settings /></Suspense></ProtectedRoute>
+          } />
+
           <Route path="*"                         element={<NotFound />} />
         </Routes>
       </main>
-      <Footer />
+      {!isStudio && <Footer />}
     </>
   )
 }

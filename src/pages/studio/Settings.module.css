@@ -1,0 +1,67 @@
+.accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 640px;
+}
+
+.sectionCard {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+}
+
+.sectionHeader {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.1rem 1.25rem;
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+}
+
+.chevron { font-size: 0.75rem; color: var(--muted); }
+
+.sectionBody {
+  padding: 0 1.25rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1.1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.field input, .field textarea {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.85rem;
+  font-weight: 400;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+}
+.field input:focus, .field textarea:focus { outline: none; border-color: var(--red); }
+
+.colorRow { display: flex; gap: 0.6rem; align-items: center; }
+.colorRow input[type="color"] { width: 44px; height: 40px; padding: 2px; }
+.colorRow input[type="text"] { flex: 1; }
+
+.saveBtn {
+  align-self: flex-start;
+  background: var(--red);
+  color: #fff;
+  font-weight: 700;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius-sm);
+}
+.saveBtn:hover:not(:disabled) { background: var(--red-dark); }
+.saveBtn:disabled { opacity: 0.75; }

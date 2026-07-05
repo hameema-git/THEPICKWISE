@@ -1,0 +1,113 @@
+.seedBanner {
+  background: var(--amber-light);
+  border: 1px solid var(--amber);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.seedBanner p { color: var(--amber-dark); font-size: 0.92rem; }
+.seedBtn {
+  align-self: flex-start;
+  background: var(--amber-dark);
+  color: #fff;
+  font-weight: 700;
+  padding: 0.6rem 1.1rem;
+  border-radius: var(--radius-sm);
+}
+.seedBtn:disabled { opacity: 0.6; }
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+@media (min-width: 640px) {
+  .statsGrid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.statCard {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.warnCard { background: var(--amber-light); }
+
+.statNum {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+.statLabel { font-size: 0.82rem; color: var(--muted); }
+
+.addBtn {
+  display: inline-block;
+  background: var(--red);
+  color: #fff;
+  font-weight: 700;
+  padding: 0.85rem 1.5rem;
+  border-radius: var(--radius-pill);
+  margin-bottom: 2rem;
+}
+.addBtn:hover { background: var(--red-dark); }
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  margin-bottom: 0.9rem;
+}
+
+.empty { color: var(--muted); font-size: 0.9rem; }
+
+.latestList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.latestRow {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 0.9rem;
+  box-shadow: var(--card-shadow);
+}
+
+.thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--bg);
+}
+
+.latestInfo { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.latestName {
+  font-weight: 600;
+  font-size: 0.92rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.latestMeta { font-size: 0.78rem; color: var(--muted); }
+
+.catChipRow { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.catStatChip {
+  background: var(--white);
+  box-shadow: var(--card-shadow);
+  padding: 0.5rem 0.9rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.catStatChip strong { color: var(--red); margin-left: 0.3rem; }

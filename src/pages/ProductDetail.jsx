@@ -1,23 +1,12 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { products as defaultProducts, SHOP_COLORS } from '../data/products'
+import { SHOP_COLORS } from '../constants/shopColors'
+import * as publicProductsService from '../services/publicProductsService'
+import * as analyticsService from '../services/analyticsService'
 import VideoModal from '../components/VideoModal'
 import ProductCard from '../components/ProductCard'
+import Seo from '../components/Seo'
 import styles from './ProductDetail.module.css'
-
-const STORAGE_KEY   = 'pickwise_extra_products'
-const OVERRIDES_KEY = 'pickwise_overrides'
-
-function getAllProducts() {
-  try {
-    const overrides = JSON.parse(localStorage.getItem(OVERRIDES_KEY)) || {}
-    const extra     = JSON.parse(localStorage.getItem(STORAGE_KEY))   || []
-    const base = defaultProducts.map(p =>
-      overrides[p.id] ? { ...p, ...overrides[p.id] } : p
-    )
-    return [...base, ...extra]
-  } catch { return [...defaultProducts] }
-}
 
 function getEmbed(url) {
   if (!url) return ''
@@ -45,10 +34,27 @@ function useLikes(id) {
 
 export default function ProductDetail() {
   const { id } = useParams()
-  const allProducts = useMemo(() => getAllProducts(), [])
-  const product = allProducts.find(p => p.id === Number(id))
+  const [product, setProduct] = useState(null)
+  const [related, setRelated] = useState([])
+  const [loading, setLoading] = useState(true)
   const [video, setVideo] = useState(null)
-  const { likes, dislikes, vote: userVote, vote } = useLikes(product?.id)
+  const { likes, dislikes, vote: userVote, vote } = useLikes(id)
+
+  useEffect(() => {
+    setLoading(true)
+    publicProductsService.getById(id).then(async (p) => {
+      setProduct(p)
+      if (p?.category_id) {
+        const relatedProducts = await publicProductsService.getRelated(p.category_id, p.id, 4)
+        setRelated(relatedProducts)
+      }
+      setLoading(false)
+    })
+  }, [id])
+
+  if (loading) {
+    return <div className={styles.notFound}><p>Loading…</p></div>
+  }
 
   if (!product) return (
     <div className={styles.notFound}>
@@ -58,15 +64,26 @@ export default function ProductDetail() {
     </div>
   )
 
-  const shop    = SHOP_COLORS[product.shop] || { bg:'#64748b', text:'#fff' }
-  const related = allProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0,4)
+  const shop = SHOP_COLORS[product.shop] || { bg:'#64748b', text:'#fff' }
+  const categoryName = product.categories?.name || 'Uncategorized'
+
+  const handleBuyClick = () => {
+    analyticsService.logClick(product.id).catch(() => {})
+  }
 
   return (
     <>
+      <Seo
+        title={product.name}
+        description={product.review?.slice(0, 155)}
+        path={`/product/${product.id}`}
+        image={product.image_url}
+        product={product}
+      />
       <div className={styles.breadcrumb}>
         <div className={styles.container}>
           <Link to="/">Home</Link> <span>/</span>
-          <span>{product.category}</span> <span>/</span>
+          <span>{categoryName}</span> <span>/</span>
           <span className={styles.currentPage}>{product.name}</span>
         </div>
       </div>
@@ -75,16 +92,16 @@ export default function ProductDetail() {
         <div className={styles.detail}>
           {/* Image */}
           <div className={styles.imageWrap}>
-            <img src={product.image} alt={product.name} />
+            <img src={product.image_url} alt={product.name} />
             <div className={styles.badges}>
-              {product.badges.map(b => BADGE_MAP[b] && <span key={b} className={`${styles.badge} ${styles[b]}`}>{BADGE_MAP[b]}</span>)}
+              {(product.badges || []).map(b => BADGE_MAP[b] && <span key={b} className={`${styles.badge} ${styles[b]}`}>{BADGE_MAP[b]}</span>)}
             </div>
           </div>
 
           {/* Info */}
           <div className={styles.info}>
             <div className={styles.topRow}>
-              <span className={styles.cat}>{product.category}</span>
+              <span className={styles.cat}>{product.categories?.emoji} {categoryName}</span>
               <span className={styles.shop} style={{ background:shop.bg, color:shop.text }}>{product.shop}</span>
             </div>
 
@@ -95,7 +112,7 @@ export default function ProductDetail() {
                 <span key={i} style={{ color: i<=Math.floor(product.rating)?'#f4a261':i-0.5<=product.rating?'#f4a261':'#cbd5e1', opacity:i-0.5<=product.rating&&i>Math.floor(product.rating)?0.5:1, fontSize:'1.1rem' }}>★</span>
               ))}
               <span className={styles.ratingNum}>{product.rating}</span>
-              <span className={styles.reviewsNum}>({product.reviews_count.toLocaleString()} reviews)</span>
+              <span className={styles.reviewsNum}>({(product.reviews_count || 0).toLocaleString()} reviews)</span>
             </div>
 
             <div className={styles.priceBlock}>
@@ -124,7 +141,7 @@ export default function ProductDetail() {
 
             <div className={styles.ctas}>
               <a href={product.affiliate_link} target="_blank" rel="nofollow noopener noreferrer"
-                className={styles.btnBuy} style={{ background:shop.bg }}>
+                className={styles.btnBuy} style={{ background:shop.bg }} onClick={handleBuyClick}>
                 Buy on {product.shop} →
               </a>
               {product.video_link && (
@@ -144,7 +161,7 @@ export default function ProductDetail() {
 
         {related.length > 0 && (
           <section className={styles.related}>
-            <h2 className={styles.relatedTitle}>More in {product.category}</h2>
+            <h2 className={styles.relatedTitle}>More in {categoryName}</h2>
             <div className={styles.relatedGrid}>
               {related.map(p => <ProductCard key={p.id} product={p} onVideoOpen={(u,c) => setVideo({url:getEmbed(u),credit:c})} />)}
             </div>
