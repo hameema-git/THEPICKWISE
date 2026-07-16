@@ -37,47 +37,10 @@
 .iframeWrap { aspect-ratio: 16/9; }
 .iframeWrap iframe { width: 100%; height: 100%; border: none; }
 
-/* Instagram Reels are vertical — used only for the FALLBACK iframe path
-   (when the official embed script below doesn't load), sized close to
-   real reel proportions to minimize letterboxing. */
+/* Instagram Reels are vertical (9:16), not widescreen — without these,
+   a Reel would render squished inside a box built for YouTube. */
 .iframeVertical { aspect-ratio: 9/16; max-height: 80vh; }
 .boxVertical { max-width: 400px; }
-
-/* Instagram's OFFICIAL embed (preferred path) sizes itself to the real
-   content — no forced aspect ratio needed, just a sensible max-width. */
-.boxInstagram {
-  background: #fff;
-  max-width: 420px;
-  max-height: 88vh;
-  overflow-y: auto;
-}
-.igWrap {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  padding-top: 44px; /* clears the close button */
-  min-height: 200px;
-}
-.igLoading {
-  position: absolute;
-  top: 90px;
-  left: 0; right: 0;
-  text-align: center;
-  font-size: 0.85rem;
-  color: #8e8e8e;
-}
-.closeDark {
-  background: rgba(0,0,0,0.08);
-  color: #262626;
-}
-.closeDark:hover { background: var(--red); color: #fff; }
-.footerLight {
-  background: #fafafa;
-  border-top: 1px solid #eee;
-}
-.footerLight .credit { color: #737373; }
-.footerLight .credit strong { color: #262626; }
-.footerLight .disclaimer { color: #a3a3a3; }
 
 .footer {
   padding: 0.6rem 1rem;
