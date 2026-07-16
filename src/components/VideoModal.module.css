@@ -37,8 +37,14 @@
 .iframeWrap { aspect-ratio: 16/9; }
 .iframeWrap iframe { width: 100%; height: 100%; border: none; }
 
-/* Instagram's official embed sizes itself — we just give it a sensible
-   max-width and let the height be whatever the real content needs. */
+/* Instagram Reels are vertical — used only for the FALLBACK iframe path
+   (when the official embed script below doesn't load), sized close to
+   real reel proportions to minimize letterboxing. */
+.iframeVertical { aspect-ratio: 9/16; max-height: 80vh; }
+.boxVertical { max-width: 400px; }
+
+/* Instagram's OFFICIAL embed (preferred path) sizes itself to the real
+   content — no forced aspect ratio needed, just a sensible max-width. */
 .boxInstagram {
   background: #fff;
   max-width: 420px;
@@ -46,9 +52,19 @@
   overflow-y: auto;
 }
 .igWrap {
+  position: relative;
   display: flex;
   justify-content: center;
   padding-top: 44px; /* clears the close button */
+  min-height: 200px;
+}
+.igLoading {
+  position: absolute;
+  top: 90px;
+  left: 0; right: 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #8e8e8e;
 }
 .closeDark {
   background: rgba(0,0,0,0.08);

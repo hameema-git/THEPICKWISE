@@ -1,8 +1,8 @@
-// Converts a normal video/reel link into a form each platform's embed
-// method needs. YouTube gets a ready-to-use iframe URL. Instagram gets
-// its canonical permalink — Instagram's official embed script (loaded in
-// VideoModal) takes the plain URL and builds its own properly-sized embed,
-// which avoids the black-bar letterboxing a raw /embed iframe produces.
+// Converts a normal video/reel link into a usable form per platform.
+// YouTube gets a ready embed iframe URL. Instagram gets its canonical
+// permalink — VideoModal tries Instagram's official embed script first
+// (auto-sizes to real content) and only falls back to a manual /embed
+// iframe if that script fails to load (e.g. blocked by an ad-blocker).
 export function getEmbed(url) {
   if (!url) return ''
 
@@ -17,6 +17,13 @@ export function getEmbed(url) {
   if (ig) return `https://www.instagram.com/${ig[1]}/${ig[2]}/`
 
   return url
+}
+
+// Builds the fallback /embed iframe URL from a canonical Instagram permalink.
+// Only used when the official embed script fails to load.
+export function getInstagramEmbedFallback(url) {
+  if (url.includes('/embed')) return url
+  return url.replace(/\/?(\?.*)?$/, '/embed')
 }
 
 // Instagram embeds render tall/vertical (reel aspect ratio) — VideoModal can
