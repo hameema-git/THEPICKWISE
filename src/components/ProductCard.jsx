@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { SHOP_COLORS } from '../constants/shopColors'
+import { getEmbed, getEmbedPlatform } from '../utils/videoEmbed'
 import * as analyticsService from '../services/analyticsService'
 import styles from './ProductCard.module.css'
 
@@ -25,13 +26,6 @@ function Stars({ rating }) {
       <span className={styles.ratingNum}>{rating}</span>
     </span>
   )
-}
-
-function getEmbed(url) {
-  if (!url) return ''
-  if (url.includes('/embed/')) return url.includes('?') ? url + '&autoplay=1' : url + '?autoplay=1'
-  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]+)/)
-  return m ? `https://www.youtube.com/embed/${m[1]}?autoplay=1` : url
 }
 
 function useLikes(id) {
@@ -81,7 +75,7 @@ export default function ProductCard({ product, onVideoOpen }) {
         </div>
         {product.video_link && (
           <button className={styles.videoBtn}
-            onClick={() => onVideoOpen(getEmbed(product.video_link), product.video_credit)}
+            onClick={() => onVideoOpen(getEmbed(product.video_link), product.video_credit, getEmbedPlatform(product.video_link))}
             aria-label="Watch video review">
             ▶ Watch Review
           </button>

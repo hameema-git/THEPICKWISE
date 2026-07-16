@@ -1,19 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { SHOP_COLORS } from '../constants/shopColors'
+import { getEmbed, getEmbedPlatform } from '../utils/videoEmbed'
 import * as publicProductsService from '../services/publicProductsService'
 import * as analyticsService from '../services/analyticsService'
 import VideoModal from '../components/VideoModal'
 import ProductCard from '../components/ProductCard'
 import Seo from '../components/Seo'
 import styles from './ProductDetail.module.css'
-
-function getEmbed(url) {
-  if (!url) return ''
-  if (url.includes('/embed/')) return url.includes('?') ? url+'&autoplay=1' : url+'?autoplay=1'
-  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]+)/)
-  return m ? `https://www.youtube.com/embed/${m[1]}?autoplay=1` : url
-}
 
 const BADGE_MAP = { deal:'🔥 Hot Deal', new:'✨ New Pick', fav:'❤️ My Favourite' }
 
@@ -145,13 +139,13 @@ export default function ProductDetail() {
                 Buy on {product.shop} →
               </a>
               {product.video_link && (
-                <button className={styles.btnVideo} onClick={() => setVideo({ url:getEmbed(product.video_link), credit:product.video_credit })}>
+                <button className={styles.btnVideo} onClick={() => setVideo({ url:getEmbed(product.video_link), credit:product.video_credit, platform:getEmbedPlatform(product.video_link) })}>
                   ▶ Watch Video Review
                 </button>
               )}
             </div>
 
-            {product.video_credit && <p className={styles.credit}>📹 Video by <strong>{product.video_credit}</strong> (YouTube)</p>}
+            {product.video_credit && <p className={styles.credit}>📹 Video by <strong>{product.video_credit}</strong></p>}
 
             <div className={styles.disclosureNote}>
               <strong>Note:</strong> This is an affiliate link. I earn a small commission if you buy — at no extra cost to you. I only recommend products I genuinely use.
@@ -163,13 +157,13 @@ export default function ProductDetail() {
           <section className={styles.related}>
             <h2 className={styles.relatedTitle}>More in {categoryName}</h2>
             <div className={styles.relatedGrid}>
-              {related.map(p => <ProductCard key={p.id} product={p} onVideoOpen={(u,c) => setVideo({url:getEmbed(u),credit:c})} />)}
+              {related.map(p => <ProductCard key={p.id} product={p} onVideoOpen={(u,c,plat) => setVideo({url:u,credit:c,platform:plat})} />)}
             </div>
           </section>
         )}
       </div>
 
-      {video && <VideoModal url={video.url} credit={video.credit} onClose={() => setVideo(null)} />}
+      {video && <VideoModal url={video.url} credit={video.credit} platform={video.platform} onClose={() => setVideo(null)} />}
     </>
   )
 }
