@@ -14,12 +14,25 @@ const BADGE_MAP = { deal:'🔥 Hot Deal', new:'✨ New Pick', fav:'❤️ My Fav
 
 function useLikes(id) {
   const key = `pw_likes_${id}`
-  const [data, setData] = useState(() => { try { return JSON.parse(localStorage.getItem(key)) || { likes:0, dislikes:0, vote:null } } catch { return { likes:0, dislikes:0, vote:null } } })
+  const [data, setData] = useState(() => { 
+    try { 
+      return JSON.parse(localStorage.getItem(key)) || { likes:0, dislikes:0, vote:null } 
+    } catch { 
+      return { likes:0, dislikes:0, vote:null } 
+    } 
+  })
+
   const vote = (type) => {
     setData(prev => {
       let next = { ...prev }
-      if (prev.vote === type) { next[type+'s']--; next.vote = null }
-      else { if (prev.vote) next[prev.vote+'s']--; next[type+'s']++; next.vote = type }
+      if (prev.vote === type) { 
+        next[type+'s']--
+        next.vote = null 
+      } else { 
+        if (prev.vote) next[prev.vote+'s']--
+        next[type+'s']++
+        next.vote = type 
+      }
       localStorage.setItem(key, JSON.stringify(next))
       return next
     })
@@ -121,7 +134,7 @@ export default function ProductDetail() {
             )}
           </div>
 
-          {/* RIGHT COLUMN: Product Information & Buy buttons */}
+          {/* RIGHT COLUMN: Product Information & Action buttons */}
           <div className={styles.info}>
             <div className={styles.topRow}>
               <span className={styles.cat}>{product.categories?.emoji} {categoryName}</span>
@@ -168,9 +181,23 @@ export default function ProductDetail() {
                 Buy on {product.shop} →
               </a>
               {videos.map((v) => (
-                <button key={v.platform} className={styles.btnVideo}
-                  onClick={() => setVideo({ url: v.embedUrl, credit: product.video_credit, platform: v.platform })}>
-                  ▶ Watch on {v.platform === 'instagram' ? 'Instagram' : v.platform === 'youtube' ? 'YouTube' : 'Video'}
+                <button
+                  key={v.platform}
+                  className={styles.btnVideo}
+                  onClick={() =>
+                    setVideo({
+                      url: v.embedUrl,
+                      credit: product.video_credit,
+                      platform: v.platform,
+                    })
+                  }
+                >
+                  ▶ Watch on{" "}
+                  {v.platform === "instagram"
+                    ? "Instagram"
+                    : v.platform === "youtube"
+                    ? "YouTube"
+                    : "Video"}
                 </button>
               ))}
             </div>
