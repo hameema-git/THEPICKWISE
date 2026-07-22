@@ -1,0 +1,170 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 26, 46, 0.65);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.box {
+  background: var(--white);
+  border-radius: var(--radius);
+  overflow: hidden;
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: var(--card-shadow-hover);
+  animation: slideUp 0.25s ease;
+}
+@keyframes slideUp { from { transform: translateY(20px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+
+.close {
+  position: absolute;
+  top: 14px; right: 14px;
+  background: rgba(255,255,255,0.9);
+  color: var(--text);
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.95rem;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.close:hover { background: var(--red); color: #fff; }
+
+/* Scrollable content area — separate from the action bar below, so the
+   Buy/video buttons are always reachable even if the review text or
+   gallery pushes content taller than the viewport. This is what fixes
+   the "buttons cut off" issue. */
+.scrollArea { overflow-y: auto; }
+
+.gallery {
+  position: relative;
+  aspect-ratio: 1/1;
+  background: var(--bg);
+}
+.galleryImg { width: 100%; height: 100%; object-fit: cover; display: block; }
+.galleryFallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; }
+
+.badgeRow { position: absolute; top: 14px; left: 14px; display: flex; gap: 6px; }
+.badge {
+  background: rgba(255,255,255,0.95);
+  color: var(--text);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.9);
+  color: var(--text);
+  font-size: 1.4rem;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.arrow:hover { background: #fff; }
+.arrowLeft { left: 12px; }
+.arrowRight { right: 12px; }
+
+.dots {
+  position: absolute;
+  bottom: 12px; left: 0; right: 0;
+  display: flex; justify-content: center; gap: 6px;
+}
+.dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.6); border: none; }
+.dotActive { background: #fff; width: 20px; border-radius: 4px; }
+
+.info { padding: 1.3rem 1.4rem 1.1rem; }
+
+.topRow { display: flex; gap: 0.5rem; margin-bottom: 0.7rem; }
+.catChip {
+  font-size: 0.72rem; font-weight: 600;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  color: var(--muted);
+}
+.shopChip {
+  font-size: 0.72rem; font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-pill);
+}
+
+.name {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  line-height: 1.25;
+  color: var(--text);
+  margin-bottom: 0.55rem;
+}
+
+.ratingRow { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.8rem; }
+.stars { font-size: 0.95rem; letter-spacing: 1px; }
+.ratingNum { font-weight: 700; font-size: 0.85rem; color: var(--text); }
+.reviewsCount { font-size: 0.8rem; color: var(--muted); }
+
+.priceRow { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.priceNow { font-family: var(--font-display); font-weight: 700; font-size: 1.55rem; color: var(--red); }
+.priceWas { font-size: 0.9rem; color: var(--border2); text-decoration: line-through; }
+.priceSave { font-size: 0.8rem; font-weight: 700; color: #15803d; }
+
+.reviewBlock {
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 0.9rem 1rem;
+}
+.reviewLabel { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+.reviewText { font-size: 0.9rem; line-height: 1.55; color: var(--text); }
+
+/* Fixed action bar — always visible, never pushed off-screen regardless
+   of how much content is in .scrollArea above it. */
+.actionBar {
+  border-top: 1px solid var(--border);
+  padding: 0.9rem 1.4rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  flex-shrink: 0;
+  background: var(--white);
+}
+
+.videoRow { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+.videoRowSingle { grid-template-columns: 1fr; }
+.btnVideo {
+  padding: 0.7rem;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--navy);
+  background: transparent;
+  color: var(--navy);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+.btnVideo:hover { background: var(--navy); color: #fff; }
+
+.btnBuy {
+  display: block;
+  text-align: center;
+  padding: 0.85rem;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.btnBuy:hover { opacity: 0.9; }

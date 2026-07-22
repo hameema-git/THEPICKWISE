@@ -8,12 +8,10 @@ import Seo from '../components/Seo'
 import styles from './Home.module.css'
 
 const FAQS = [
-  { q: 'Are the reviews real?', a: 'Yes — every product listed is something I have personally bought and used. I write my honest experience, including any problems. If I do not like something, I do not list it.' },
-  { q: 'Do I pay more by clicking your links?', a: 'No. You pay exactly the same price as going directly to Amazon, Meesho, or Flipkart. The commission comes from the retailer, not from you.' },
-  { q: 'Can I trust the video reviews?', a: 'The videos are from trusted YouTube creators like Tech Burner, Trakin Tech, BeBeautiful and others. They are clearly credited. I select only genuine, well-researched review videos.' },
-  { q: 'How do I know if a product is good for me?', a: 'Use the Like / Dislike buttons on each product — they show real community feedback. You can also watch the video review before buying to see the product in action.' },
-  { q: 'Can I download this as an app on my phone?', a: 'Yes! On Android, open this site in Chrome and tap the "Install App" button in the menu. On iPhone, tap Share → Add to Home Screen. Works like a real app, completely free.' },
-  { q: 'How often are new products added?', a: 'New products are added regularly — follow @thepickwise on Instagram to be the first to know about new picks and deals.' },
+  { q: "How do I know these are honest reviews?", a: "Every single product on this site has been personally purchased and tested by me. I don't accept payment to feature products, and I always disclose when a link is an affiliate link." },
+  { q: "Do prices stay accurate?", a: "I update prices when I notice a change, but marketplaces change prices frequently. The price shown when you click through is always the real one — treat the price on my site as approximate." },
+  { q: "How do you make money from this site?", a: "When you buy something through one of my links, I earn a small commission from the seller — at no extra cost to you. This is what lets me keep testing and reviewing products." },
+  { q: "Can I suggest a product for you to review?", a: "Yes! Message me on Instagram with your suggestion — I read every message." },
 ]
 
 export default function Home() {
@@ -36,46 +34,53 @@ export default function Home() {
       {/* HERO */}
       <section className={styles.hero}>
         <div className={styles.heroBlobs}>
-          <div className={`${styles.blob} ${styles.b1}`}/><div className={`${styles.blob} ${styles.b2}`}/><div className={`${styles.blob} ${styles.b3}`}/>
+          <div className={`${styles.blob} ${styles.b1}`}></div>
+          <div className={`${styles.blob} ${styles.b2}`}></div>
+          <div className={`${styles.blob} ${styles.b3}`}></div>
         </div>
         <div className={styles.heroContent}>
-          <p className={styles.eyebrow}>Real products · Real videos · Real opinions</p>
-          <h1 className={styles.heroTitle}>Your one-stop shop for<br /><span className={styles.red}>honest</span> product <span className={styles.amber}>reviews</span></h1>
-          <p className={styles.heroSub}>Every product here is personally tested. Watch the real video review before you buy. No fake reviews, no paid promotions.</p>
           <div className={styles.heroPills}>
-            {['✅ Personally tested','🎬 Real video reviews','💰 Best prices','👍 Community rated'].map(t=><span key={t} className={styles.pill}>{t}</span>)}
+            <span className={styles.pill}>✅ Personally Tested</span>
+            <span className={styles.pill}>🎥 Real Videos</span>
+            <span className={styles.pill}>💯 Honest Reviews</span>
           </div>
+          <h1 className={styles.heroTitle}>
+            Tested by Me.<br/><span className={styles.heroAccent}>Trusted for You.</span>
+          </h1>
+          <p className={styles.heroSub}>
+            I buy, test, and review every product myself before recommending it — with real video proof, not paid promotions.
+          </p>
           <div className={styles.heroCtas}>
-            <a href="#products" className={styles.btnPrimary}>Browse Products →</a>
-            <a href="#picks"    className={styles.btnGhost}>⭐ My Favourites</a>
+            <a href="#products" className={styles.btnPrimary}>Browse Products</a>
+            <a href="#picks" className={styles.btnGhost}>⭐ My Favourites</a>
           </div>
         </div>
       </section>
 
       {/* STATS */}
-      <div className={styles.statsBar}>
-        {[['11+','Products Tested'],['Real','Video Reviews'],['₹0','Extra Cost to You'],['100%','Honest Opinions']].map(([n,l])=>(
-          <div key={l} className={styles.stat}><span className={styles.statN}>{n}</span><span className={styles.statL}>{l}</span></div>
-        ))}
-      </div>
-
-      {/* PICKS */}
-      <section className={styles.picksSection} id="picks">
-        <div className={styles.inner}>
-          <div className={styles.sectionHead}>
-            <span className={styles.tag}>⭐ Editor's choice</span>
-            <h2 className={styles.sectionTitle}>My Personal Favourites</h2>
-            <p className={styles.sectionSub}>Products I genuinely love and use every day.</p>
-          </div>
-          <div className={styles.grid}>
-            {picks.map(p=><ProductCard key={p.id} product={p} onVideoOpen={(u,c)=>setVideo({url:u,credit:c})}/>)}
-          </div>
-        </div>
+      <section className={styles.statsBar}>
+        <div className={styles.stat}><span className={styles.statN}>{filtered.length}+</span><span className={styles.statL}>Products Reviewed</span></div>
+        <div className={styles.stat}><span className={styles.statN}>100%</span><span className={styles.statL}>Personally Tested</span></div>
+        <div className={styles.stat}><span className={styles.statN}>0</span><span className={styles.statL}>Paid Promotions</span></div>
       </section>
 
-      {/* CATEGORY NAV */}
-      <div className={styles.catNav} id="products">
-        <div className={styles.inner}>
+      {/* PICKS */}
+      {picks.length > 0 && (
+        <section className={styles.section} id="picks">
+          <div className={styles.sectionHead}>
+            <span className={styles.tag}>⭐ Editor's Choice</span>
+            <h2 className={styles.sectionTitle}>My Personal Favourites</h2>
+            <p className={styles.sectionSub}>The products I genuinely use every day — my highest recommendation.</p>
+          </div>
+          <div className={styles.grid}>
+            {picks.slice(0,4).map(p=><ProductCard key={p.id} product={p} onVideoOpen={(u,c,plat)=>setVideo({url:u,credit:c,platform:plat})}/>)}
+          </div>
+        </section>
+      )}
+
+      {/* CATEGORY NAV + SEARCH */}
+      <section className={styles.section} id="products">
+        <div className={styles.catBar}>
           <div className={styles.catScroll}>
             <button
               className={`${styles.catBtn} ${category==='all'?styles.catActive:''}`}
@@ -90,83 +95,81 @@ export default function Home() {
               </button>
             ))}
           </div>
-          <div className={styles.searchWrap}>
+          <div className={styles.searchBox}>
             <span>🔍</span>
-            <input type="text" placeholder="Search..." value={search}
-              onChange={e=>setSearch(e.target.value)} className={styles.searchInput} />
-            {search && <button onClick={()=>setSearch('')} className={styles.clearBtn}>✕</button>}
+            <input type="text" placeholder="Search products..." value={search}
+              onChange={e=>setSearch(e.target.value)} />
+            {search && <button onClick={()=>setSearch('')} className={styles.clearSearch}>✕</button>}
           </div>
         </div>
-      </div>
 
-      {/* ALL PRODUCTS */}
-      <section className={styles.allSection}>
-        <div className={styles.inner}>
-          <div className={styles.allHead}>
-            <h2 className={styles.allTitle}>{search?`"${search}"`:'All Products'}</h2>
-            <span className={styles.countPill}>{filtered.length} products</span>
-          </div>
-          {loading
-            ? <p className={styles.empty}>Loading…</p>
-            : filtered.length === 0
-            ? <div className={styles.empty}>
-                <p>🔍</p>
-                <p className={styles.emptyTitle}>No products found</p>
-                <button className={styles.btnPrimary} onClick={()=>{setSearch('');setCategory('all')}}>Clear filters</button>
-              </div>
-            : <div className={styles.grid}>
-                {filtered.map(p=><ProductCard key={p.id} product={p} onVideoOpen={(u,c)=>setVideo({url:u,credit:c})}/>)}
-              </div>
-          }
-        </div>
+        <p className={styles.resultCount}>
+          {loading ? 'Loading…' : `${filtered.length} product${filtered.length===1?'':'s'}`}
+        </p>
+
+        {loading
+          ? <p className={styles.empty}>Loading…</p>
+          : filtered.length === 0
+          ? <div className={styles.empty}>
+              <p>🔍</p>
+              <p className={styles.emptyTitle}>No products found</p>
+              <button className={styles.btnPrimary} onClick={()=>{setSearch('');setCategory('all')}}>Clear filters</button>
+            </div>
+          : <div className={styles.grid}>
+              {filtered.map(p=><ProductCard key={p.id} product={p} onVideoOpen={(u,c,plat)=>setVideo({url:u,credit:c,platform:plat})}/>)}
+            </div>
+        }
       </section>
 
       {/* HOW IT WORKS */}
       <section className={styles.howSection}>
-        <div className={styles.inner}>
-          <span className={styles.tag}>Simple process</span>
-          <h2 className={styles.sectionTitle} style={{color:'#fff'}}>How thePickWise works</h2>
-          <div className={styles.howGrid}>
-            {[
-              ['🔍','I test the product','Every product is personally bought and tested before it appears here.'],
-              ['🎬','Watch the video','See the real product in action via YouTube review videos — before you buy.'],
-              ['👍','Community votes','Like or dislike buttons show you what other buyers really think.'],
-              ['🛒','You buy & save','Click Buy — same price as the store. You save, I earn a tiny commission.'],
-            ].map(([icon,title,desc])=>(
-              <div key={title} className={styles.howCard}>
-                <div className={styles.howIcon}>{icon}</div>
-                <div className={styles.howTitle}>{title}</div>
-                <p className={styles.howDesc}>{desc}</p>
-              </div>
-            ))}
+        <h2 className={styles.sectionTitle} style={{textAlign:'center'}}>How I Pick Products</h2>
+        <div className={styles.howGrid}>
+          <div className={styles.howCard}>
+            <div className={styles.howIcon}>🛒</div>
+            <h3 className={styles.howTitle}>I Buy It Myself</h3>
+            <p className={styles.howDesc}>No free samples, no sponsorships. I purchase every product with my own money.</p>
+          </div>
+          <div className={styles.howCard}>
+            <div className={styles.howIcon}>🧪</div>
+            <h3 className={styles.howTitle}>I Actually Use It</h3>
+            <p className={styles.howDesc}>Weeks of real, everyday use before I write a single word about it.</p>
+          </div>
+          <div className={styles.howCard}>
+            <div className={styles.howIcon}>🎥</div>
+            <h3 className={styles.howTitle}>I Film the Proof</h3>
+            <p className={styles.howDesc}>Real video reviews so you can see exactly what you're getting.</p>
+          </div>
+          <div className={styles.howCard}>
+            <div className={styles.howIcon}>💬</div>
+            <h3 className={styles.howTitle}>I Write it Honestly</h3>
+            <p className={styles.howDesc}>The good, the bad, and whether it's actually worth your money.</p>
           </div>
         </div>
       </section>
 
       {/* INSTAGRAM CTA */}
       <section className={styles.instaCta}>
-        <svg width="56" height="56" viewBox="0 0 400 400" style={{borderRadius:14,marginBottom:'1rem'}}>
-          <rect width="400" height="400" rx="80" fill="#1a1a2e"/>
-          <rect x="60" y="60" width="280" height="280" rx="60" fill="#e63946"/>
-          <text x="200" y="228" textAnchor="middle" fontFamily="Arial Black,sans-serif" fontSize="160" fill="#fff" fontWeight="900">P</text>
-          <polygon points="200,255 240,195 280,255" fill="#f4a261"/>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" style={{marginBottom:'1rem'}}>
+          <rect x="2" y="2" width="20" height="20" rx="6" stroke="white" strokeWidth="1.5"/>
+          <circle cx="12" cy="12" r="5" stroke="white" strokeWidth="1.5"/>
+          <circle cx="17.5" cy="6.5" r="1.2" fill="white"/>
         </svg>
-        <h2 className={styles.instaTitle}>Get daily deals on Instagram</h2>
-        <p className={styles.instaSub}>New product picks, exclusive finds, and honest reviews — every day.</p>
-        <a href="https://instagram.com/thepickwise" target="_blank" rel="noreferrer" className={styles.instaBtn}>📸 Follow @thepickwise</a>
+        <h2 className={styles.instaTitle}>Follow for Daily Finds</h2>
+        <p className={styles.instaSub}>New product reviews and honest recommendations, every week on Instagram.</p>
+        <a href="#" className={styles.instaBtn}>📸 Follow on Instagram</a>
       </section>
 
       {/* FAQ */}
-      <section className={styles.faqSection} id="faq">
+      <section className={styles.faqSection}>
         <div className={styles.faqInner}>
-          <span className={styles.tag}>Got questions?</span>
-          <h2 className={styles.sectionTitle}>Frequently asked questions</h2>
+          <h2 className={styles.sectionTitle} style={{textAlign:'center', marginBottom:'2rem'}}>Frequently Asked Questions</h2>
           <div className={styles.faqList}>
             {FAQS.map((f,i)=>(
               <div key={i} className={`${styles.faqItem} ${openFaq===i?styles.faqOpen:''}`}>
                 <button className={styles.faqQ} onClick={()=>setOpenFaq(openFaq===i?null:i)}>
                   {f.q}
-                  <span className={styles.faqArrow}>{openFaq===i?'▲':'▼'}</span>
+                  <span className={styles.faqArrow}>{openFaq===i?'−':'+'}</span>
                 </button>
                 {openFaq===i && <p className={styles.faqA}>{f.a}</p>}
               </div>
@@ -175,7 +178,7 @@ export default function Home() {
         </div>
       </section>
 
-      {video && <VideoModal url={video.url} credit={video.credit} onClose={()=>setVideo(null)}/>}
+      {video && <VideoModal url={video.url} credit={video.credit} platform={video.platform} onClose={()=>setVideo(null)}/>}
     </>
   )
 }

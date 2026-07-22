@@ -115,3 +115,5 @@
 @media (max-width: 480px) {
   .row2 { grid-template-columns: 1fr; }
 }
+
+.hint { font-size: 0.78rem; color: var(--muted); margin-top: -0.5rem; }

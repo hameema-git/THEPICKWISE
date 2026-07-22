@@ -34,11 +34,11 @@ export default function Picks() {
         <div className={styles.inner}>
           <p className={styles.count}>{loading ? 'Loading…' : `${picks.length} favourite products`}</p>
           <div className={styles.grid}>
-            {picks.map(p => <ProductCard key={p.id} product={p} onVideoOpen={(u,c) => setVideo({url:u,credit:c})} />)}
+            {picks.map(p => <ProductCard key={p.id} product={p} onVideoOpen={(u,c,plat) => setVideo({url:u,credit:c,platform:plat})} />)}
           </div>
         </div>
       </section>
-      {video && <VideoModal url={video.url} credit={video.credit} onClose={() => setVideo(null)} />}
+      {video && <VideoModal url={video.url} credit={video.credit} platform={video.platform} onClose={() => setVideo(null)} />}
     </>
   )
 }

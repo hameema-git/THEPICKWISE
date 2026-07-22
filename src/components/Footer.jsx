@@ -15,7 +15,7 @@ export default function Footer() {
           <a href="https://instagram.com/thepickwise" target="_blank" rel="noreferrer">Instagram</a>
           <a href="mailto:hello@thepickwise.in">Contact</a>
         </nav>
-        <p className={styles.copy}>© 2025 thePickWise · thepickwise.in</p>
+        <p className={styles.copy}>© {new Date().getFullYear()} thePickWise · thepickwise.in</p>
         <p className={styles.disclaim}>This site contains affiliate links. Clicking them and purchasing helps support this site at no extra cost to you.</p>
       </div>
     </footer>

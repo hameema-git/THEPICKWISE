@@ -1,19 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { SHOP_COLORS } from '../constants/shopColors'
+import { getProductVideos } from '../utils/videoEmbed'
+import { formatPrice } from '../utils/formatPrice'
 import * as publicProductsService from '../services/publicProductsService'
 import * as analyticsService from '../services/analyticsService'
 import VideoModal from '../components/VideoModal'
 import ProductCard from '../components/ProductCard'
 import Seo from '../components/Seo'
 import styles from './ProductDetail.module.css'
-
-function getEmbed(url) {
-  if (!url) return ''
-  if (url.includes('/embed/')) return url.includes('?') ? url+'&autoplay=1' : url+'?autoplay=1'
-  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]+)/)
-  return m ? `https://www.youtube.com/embed/${m[1]}?autoplay=1` : url
-}
 
 const BADGE_MAP = { deal:'🔥 Hot Deal', new:'✨ New Pick', fav:'❤️ My Favourite' }
 
@@ -38,10 +33,12 @@ export default function ProductDetail() {
   const [related, setRelated] = useState([])
   const [loading, setLoading] = useState(true)
   const [video, setVideo] = useState(null)
+  const [activeImage, setActiveImage] = useState(0)
   const { likes, dislikes, vote: userVote, vote } = useLikes(id)
 
   useEffect(() => {
     setLoading(true)
+    setActiveImage(0)
     publicProductsService.getById(id).then(async (p) => {
       setProduct(p)
       if (p?.category_id) {
@@ -66,6 +63,8 @@ export default function ProductDetail() {
 
   const shop = SHOP_COLORS[product.shop] || { bg:'#64748b', text:'#fff' }
   const categoryName = product.categories?.name || 'Uncategorized'
+  const videos = getProductVideos(product)
+  const images = product.image_urls?.length ? product.image_urls : (product.image_url ? [product.image_url] : [])
 
   const handleBuyClick = () => {
     analyticsService.logClick(product.id).catch(() => {})
@@ -90,15 +89,39 @@ export default function ProductDetail() {
 
       <div className={styles.container}>
         <div className={styles.detail}>
-          {/* Image */}
-          <div className={styles.imageWrap}>
-            <img src={product.image_url} alt={product.name} />
-            <div className={styles.badges}>
-              {(product.badges || []).map(b => BADGE_MAP[b] && <span key={b} className={`${styles.badge} ${styles[b]}`}>{BADGE_MAP[b]}</span>)}
+          
+          {/* LEFT COLUMN: Main image & thumbnail strip grouped together */}
+          <div className={styles.mediaColumn}>
+            <div className={styles.imageWrap}>
+              <img src={images[activeImage] || product.image_url} alt={product.name} />
+              <div className={styles.badges}>
+                {(product.badges || []).map(b => BADGE_MAP[b] && <span key={b} className={`${styles.badge} ${styles[b]}`}>{BADGE_MAP[b]}</span>)}
+              </div>
+              {images.length > 1 && (
+                <>
+                  <button className={styles.galleryArrow + ' ' + styles.galleryArrowLeft}
+                    onClick={() => setActiveImage((i) => (i - 1 + images.length) % images.length)}
+                    aria-label="Previous photo">‹</button>
+                  <button className={styles.galleryArrow + ' ' + styles.galleryArrowRight}
+                    onClick={() => setActiveImage((i) => (i + 1) % images.length)}
+                    aria-label="Next photo">›</button>
+                </>
+              )}
             </div>
+
+            {images.length > 1 && (
+              <div className={styles.thumbRow}>
+                {images.map((url, i) => (
+                  <button key={url} className={`${styles.thumb} ${i === activeImage ? styles.thumbActive : ''}`}
+                    onClick={() => setActiveImage(i)} aria-label={`View photo ${i + 1}`}>
+                    <img src={url} alt="" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Info */}
+          {/* RIGHT COLUMN: Product Information & Buy buttons */}
           <div className={styles.info}>
             <div className={styles.topRow}>
               <span className={styles.cat}>{product.categories?.emoji} {categoryName}</span>
@@ -116,9 +139,9 @@ export default function ProductDetail() {
             </div>
 
             <div className={styles.priceBlock}>
-              <span className={styles.priceNow}>{product.price}</span>
-              <span className={styles.priceWas}>{product.original_price}</span>
-              <span className={styles.priceSave}>{product.savings}</span>
+              <span className={styles.priceNow}>{formatPrice(product.price)}</span>
+              {product.original_price && <span className={styles.priceWas}>{formatPrice(product.original_price)}</span>}
+              {product.savings && <span className={styles.priceSave}>{product.savings}</span>}
             </div>
 
             <div className={styles.reviewBlock}>
@@ -144,32 +167,34 @@ export default function ProductDetail() {
                 className={styles.btnBuy} style={{ background:shop.bg }} onClick={handleBuyClick}>
                 Buy on {product.shop} →
               </a>
-              {product.video_link && (
-                <button className={styles.btnVideo} onClick={() => setVideo({ url:getEmbed(product.video_link), credit:product.video_credit })}>
-                  ▶ Watch Video Review
+              {videos.map((v) => (
+                <button key={v.platform} className={styles.btnVideo}
+                  onClick={() => setVideo({ url: v.embedUrl, credit: product.video_credit, platform: v.platform })}>
+                  ▶ Watch on {v.platform === 'instagram' ? 'Instagram' : v.platform === 'youtube' ? 'YouTube' : 'Video'}
                 </button>
-              )}
+              ))}
             </div>
 
-            {product.video_credit && <p className={styles.credit}>📹 Video by <strong>{product.video_credit}</strong> (YouTube)</p>}
+            {product.video_credit && <p className={styles.credit}>📹 Video by <strong>{product.video_credit}</strong></p>}
 
             <div className={styles.disclosureNote}>
               <strong>Note:</strong> This is an affiliate link. I earn a small commission if you buy — at no extra cost to you. I only recommend products I genuinely use.
             </div>
           </div>
+
         </div>
 
         {related.length > 0 && (
           <section className={styles.related}>
             <h2 className={styles.relatedTitle}>More in {categoryName}</h2>
             <div className={styles.relatedGrid}>
-              {related.map(p => <ProductCard key={p.id} product={p} onVideoOpen={(u,c) => setVideo({url:getEmbed(u),credit:c})} />)}
+              {related.map(p => <ProductCard key={p.id} product={p} onVideoOpen={(u,c,plat) => setVideo({url:u,credit:c,platform:plat})} />)}
             </div>
           </section>
         )}
       </div>
 
-      {video && <VideoModal url={video.url} credit={video.credit} onClose={() => setVideo(null)} />}
+      {video && <VideoModal url={video.url} credit={video.credit} platform={video.platform} onClose={() => setVideo(null)} />}
     </>
   )
 }

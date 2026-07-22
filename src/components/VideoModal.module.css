@@ -37,6 +37,36 @@
 .iframeWrap { aspect-ratio: 16/9; }
 .iframeWrap iframe { width: 100%; height: 100%; border: none; }
 
+/* Instagram's embed isn't a plain video — it's a card (header, video,
+   likes, caption) that renders taller and narrower than a 16:9/9:16 video
+   box. Forcing a video-shaped box left a lot of dead black space around it
+   (the actual bug reported). This sizes the box closer to Instagram's own
+   content proportions, in white to match its real background, and lets it
+   scroll internally if a particular post's content runs long. */
+.boxInstagram {
+  background: #fff;
+  max-width: 400px;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.iframeInstagram {
+  aspect-ratio: unset;
+  min-height: 620px;
+}
+.iframeInstagram iframe { min-height: 620px; }
+.closeInstagram {
+  background: rgba(0,0,0,0.08);
+  color: #262626;
+}
+.closeInstagram:hover { background: var(--red); color: #fff; }
+.footerInstagram {
+  background: #fafafa;
+  border-top: 1px solid #eee;
+}
+.footerInstagram .credit { color: #737373; }
+.footerInstagram .credit strong { color: #262626; }
+.footerInstagram .disclaimer { color: #a3a3a3; }
+
 .footer {
   padding: 0.6rem 1rem;
   background: #111;

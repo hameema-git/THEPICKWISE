@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { SHOP_COLORS } from '../constants/shopColors'
+import { getProductVideos } from '../utils/videoEmbed'
+import { formatPrice } from '../utils/formatPrice'
 import * as analyticsService from '../services/analyticsService'
 import styles from './ProductCard.module.css'
 
@@ -27,11 +29,17 @@ function Stars({ rating }) {
   )
 }
 
-function getEmbed(url) {
-  if (!url) return ''
-  if (url.includes('/embed/')) return url.includes('?') ? url + '&autoplay=1' : url + '?autoplay=1'
-  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]+)/)
-  return m ? `https://www.youtube.com/embed/${m[1]}?autoplay=1` : url
+// Cycles through a product's photos automatically while the card is
+// visible, only when there's more than one photo — a single photo just
+// sits still as before, no behavior change for existing products.
+function useAutoCarousel(images, intervalMs = 2800) {
+  const [index, setIndex] = useState(0)
+  useEffect(() => {
+    if (images.length <= 1) return
+    const timer = setInterval(() => setIndex((i) => (i + 1) % images.length), intervalMs)
+    return () => clearInterval(timer)
+  }, [images.length, intervalMs])
+  return index
 }
 
 function useLikes(id) {
@@ -61,30 +69,55 @@ export default function ProductCard({ product, onVideoOpen }) {
   const { likes, dislikes, vote: userVote, vote } = useLikes(product.id)
   const cat  = categoryChipStyle(product.categories?.color)
   const shop = SHOP_COLORS[product.shop] || { bg:'#64748b', text:'#fff' }
+  const navigate = useNavigate()
 
-  const handleBuyClick = () => {
+  const images = product.image_urls?.length ? product.image_urls : (product.image_url ? [product.image_url] : [])
+  const carouselIndex = useAutoCarousel(images)
+  const displayImage = images[carouselIndex]
+  const videos = getProductVideos(product)
+
+  const handleBuyClick = (e) => {
+    // Don't also trigger the card's own navigate-to-detail-page click.
+    e.stopPropagation()
     // Fire-and-forget — don't block the redirect on the click log.
     analyticsService.logClick(product.id).catch(() => {})
   }
 
+  const goToProduct = () => navigate(`/product/${product.id}`)
+
   return (
-    <article className={styles.card}>
+    <article className={styles.card} onClick={goToProduct} role="link" tabIndex={0}
+      onKeyDown={(e) => e.key === 'Enter' && goToProduct()} aria-label={`View ${product.name}`}>
       <div className={styles.imgWrap}>
-        {imgErr || !product.image_url
+        {imgErr || !displayImage
           ? <div className={styles.imgFallback}>📦</div>
-          : <img src={product.image_url} alt={product.name} loading="lazy" onError={() => setImgErr(true)} />
+          : <img src={displayImage} alt={product.name} loading="lazy" onError={() => setImgErr(true)} />
         }
+        {images.length > 1 && (
+          <div className={styles.carouselDots}>
+            {images.map((_, i) => (
+              <span key={i} className={`${styles.carouselDot} ${i === carouselIndex ? styles.carouselDotActive : ''}`} />
+            ))}
+          </div>
+        )}
         <div className={styles.badges}>
           {(product.badges || []).slice(0,2).map(b => BADGE_MAP[b] && (
             <span key={b} className={`${styles.badge} ${styles[BADGE_MAP[b].cls]}`}>{BADGE_MAP[b].label}</span>
           ))}
         </div>
-        {product.video_link && (
-          <button className={styles.videoBtn}
-            onClick={() => onVideoOpen(getEmbed(product.video_link), product.video_credit)}
-            aria-label="Watch video review">
-            ▶ Watch Review
-          </button>
+        {videos.length > 0 && (
+          <div className={styles.videoBtnRow}>
+            {videos.map((v) => (
+              <button key={v.platform} className={styles.videoBtn}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onVideoOpen(v.embedUrl, product.video_credit, v.platform)
+                }}
+                aria-label={`Watch on ${v.platform === 'instagram' ? 'Instagram' : 'YouTube'}`}>
+                ▶ {v.platform === 'instagram' ? 'Insta' : v.platform === 'youtube' ? 'YouTube' : 'Watch'}
+              </button>
+            ))}
+          </div>
         )}
       </div>
 
@@ -96,9 +129,7 @@ export default function ProductCard({ product, onVideoOpen }) {
           <span className={styles.shop} style={{ background: shop.bg, color: shop.text }}>{product.shop}</span>
         </div>
 
-        <Link to={`/product/${product.id}`} className={styles.titleLink}>
-          <h3 className={styles.title}>{product.name}</h3>
-        </Link>
+        <h3 className={styles.title}>{product.name}</h3>
 
         <p className={styles.review}>{product.review}</p>
 
@@ -108,8 +139,8 @@ export default function ProductCard({ product, onVideoOpen }) {
         </div>
 
         <div className={styles.priceRow}>
-          <span className={styles.priceNow}>{product.price}</span>
-          <span className={styles.priceWas}>{product.original_price}</span>
+          <span className={styles.priceNow}>{formatPrice(product.price)}</span>
+          <span className={styles.priceWas}>{formatPrice(product.original_price)}</span>
           <span className={styles.priceSave}>{product.savings}</span>
         </div>
 
@@ -117,12 +148,12 @@ export default function ProductCard({ product, onVideoOpen }) {
         <div className={styles.voteRow}>
           <button
             className={`${styles.voteBtn} ${userVote === 'like' ? styles.votedLike : ''}`}
-            onClick={() => vote('like')} aria-label="Helpful">
+            onClick={(e) => { e.stopPropagation(); vote('like') }} aria-label="Helpful">
             👍 {likes > 0 ? likes : ''} Helpful
           </button>
           <button
             className={`${styles.voteBtn} ${userVote === 'dislike' ? styles.votedDislike : ''}`}
-            onClick={() => vote('dislike')} aria-label="Not helpful">
+            onClick={(e) => { e.stopPropagation(); vote('dislike') }} aria-label="Not helpful">
             👎 {dislikes > 0 ? dislikes : ''} Not helpful
           </button>
         </div>

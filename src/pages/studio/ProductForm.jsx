@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import StudioLayout from '../../components/studio/StudioLayout'
+import PhotoUploader from '../../components/studio/PhotoUploader'
 import { useCategories } from '../../hooks/useCategories'
 import * as productsService from '../../services/productsService'
 import * as categoriesService from '../../services/categoriesService'
@@ -9,18 +10,8 @@ import styles from './ProductForm.module.css'
 const EMPTY = {
   name: '', category_id: '', price: '', original_price: '', savings: '',
   shop: 'Meesho', rating: 4.5, reviews_count: 100, affiliate_link: '',
-  image_url: '', review: '', video_link: '', video_credit: '',
+  image_url: '', image_urls: [], review: '', video_link: '', video_link_youtube: '', video_link_instagram: '', video_credit: '',
   badges: [], is_pick: false, is_published: true,
-}
-
-// Best-effort platform detection from a pasted URL — prefills the shop field
-// so there's one less manual dropdown click. Not a scraper; see Phase 2 notes
-// on why live auto-fill of name/image/price isn't reliable long-term.
-function detectShop(url) {
-  if (/amazon\./i.test(url)) return 'Amazon'
-  if (/meesho\./i.test(url)) return 'Meesho'
-  if (/flipkart\./i.test(url)) return 'Flipkart'
-  return null
 }
 
 export default function ProductForm() {
@@ -35,7 +26,6 @@ export default function ProductForm() {
   const [error, setError] = useState('')
   const [showNewCategory, setShowNewCategory] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState('')
-  const [linkPaste, setLinkPaste] = useState('')
 
   useEffect(() => {
     if (!isEdit) return
@@ -44,7 +34,9 @@ export default function ProductForm() {
         name: p.name || '', category_id: p.category_id || '', price: p.price || '',
         original_price: p.original_price || '', savings: p.savings || '', shop: p.shop || 'Meesho',
         rating: p.rating || 4.5, reviews_count: p.reviews_count || 0, affiliate_link: p.affiliate_link || '',
-        image_url: p.image_url || '', review: p.review || '', video_link: p.video_link || '',
+        image_url: p.image_url || '', image_urls: p.image_urls?.length ? p.image_urls : (p.image_url ? [p.image_url] : []),
+        review: p.review || '', video_link: p.video_link || '',
+        video_link_youtube: p.video_link_youtube || '', video_link_instagram: p.video_link_instagram || '',
         video_credit: p.video_credit || '', badges: p.badges || [], is_pick: p.is_pick || false,
         is_published: p.is_published ?? true,
       })
@@ -52,14 +44,8 @@ export default function ProductForm() {
     })
   }, [id, isEdit])
 
-  const handleLinkPaste = (value) => {
-    setLinkPaste(value)
-    const shop = detectShop(value)
-    setForm((f) => ({
-      ...f,
-      affiliate_link: value,
-      shop: shop || f.shop,
-    }))
+  const handlePhotosChange = (urls) => {
+    setForm((f) => ({ ...f, image_urls: urls, image_url: urls[0] || '' }))
   }
 
   const toggleBadge = (badge) => {
@@ -106,17 +92,6 @@ export default function ProductForm() {
     <StudioLayout title={isEdit ? 'Edit Product' : 'Add Product'}>
       <form className={styles.form} onSubmit={handleSubmit}>
         {error && <div className={styles.error}>{error}</div>}
-
-        <label className={styles.field}>
-          <span>Paste Product Link</span>
-          <input
-            type="url"
-            value={linkPaste}
-            onChange={(e) => handleLinkPaste(e.target.value)}
-            placeholder="https://meesho.com/... or amazon.in/..."
-          />
-          <small>We'll detect the shop automatically and fill the affiliate link below.</small>
-        </label>
 
         <label className={styles.field}>
           <span>Product Name *</span>
@@ -180,21 +155,14 @@ export default function ProductForm() {
             type="url"
             value={form.affiliate_link}
             onChange={(e) => setForm((f) => ({ ...f, affiliate_link: e.target.value }))}
+            placeholder="Paste your Amazon/Meesho/Flipkart affiliate link"
             required
           />
         </label>
 
         <label className={styles.field}>
-          <span>Product Image URL</span>
-          <input
-            type="url"
-            value={form.image_url}
-            onChange={(e) => setForm((f) => ({ ...f, image_url: e.target.value }))}
-            placeholder="https://images.unsplash.com/photo-..."
-          />
-          {form.image_url && (
-            <img src={form.image_url} alt="preview" className={styles.imgPreview} onError={(e) => (e.target.style.display = 'none')} />
-          )}
+          <span>Product Photos *</span>
+          <PhotoUploader images={form.image_urls} onChange={handlePhotosChange} />
         </label>
 
         <label className={styles.field}>
@@ -204,14 +172,20 @@ export default function ProductForm() {
 
         <div className={styles.row2}>
           <label className={styles.field}>
-            <span>Video Link</span>
-            <input type="url" value={form.video_link} onChange={(e) => setForm((f) => ({ ...f, video_link: e.target.value }))} />
+            <span>YouTube Video Link</span>
+            <input type="url" value={form.video_link_youtube} onChange={(e) => setForm((f) => ({ ...f, video_link_youtube: e.target.value }))} placeholder="youtube.com/watch?v=... (optional)" />
           </label>
           <label className={styles.field}>
-            <span>Video Credit</span>
-            <input value={form.video_credit} onChange={(e) => setForm((f) => ({ ...f, video_credit: e.target.value }))} placeholder="Channel name" />
+            <span>Instagram Reel Link</span>
+            <input type="url" value={form.video_link_instagram} onChange={(e) => setForm((f) => ({ ...f, video_link_instagram: e.target.value }))} placeholder="instagram.com/reel/... (optional)" />
           </label>
         </div>
+        <small className={styles.hint}>Add either one, or both — visitors will see a button for each video you add.</small>
+
+        <label className={styles.field}>
+          <span>Video Credit</span>
+          <input value={form.video_credit} onChange={(e) => setForm((f) => ({ ...f, video_credit: e.target.value }))} placeholder="Channel name" />
+        </label>
 
         <div className={styles.field}>
           <span>Badges</span>
