@@ -12,7 +12,7 @@ export default function Footer() {
           <Link to="/picks">My Favourites</Link>
           <Link to="/disclosure">About</Link>
           <Link to="/privacy">Privacy</Link>
-          <a href="https://instagram.com/thepickwise" target="_blank" rel="noreferrer">Instagram</a>
+          <a href="https://instagram.com/thepickwise.in" target="_blank" rel="noreferrer">Instagram</a>
           <a href="mailto:hello@thepickwise.in">Contact</a>
         </nav>
         <p className={styles.copy}>© {new Date().getFullYear()} thePickWise · thepickwise.in</p>

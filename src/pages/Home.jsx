@@ -157,7 +157,15 @@ export default function Home() {
         </svg>
         <h2 className={styles.instaTitle}>Follow for Daily Finds</h2>
         <p className={styles.instaSub}>New product reviews and honest recommendations, every week on Instagram.</p>
-        <a href="#" className={styles.instaBtn}>📸 Follow on Instagram</a>
+        {/* <a href="#" className={styles.instaBtn}>📸 Follow on Instagram</a> */}
+        <a
+  href="https://www.instagram.com/thepickwise.in/"
+  target="_blank"
+  rel="noopener noreferrer"
+  className={styles.instaBtn}
+>
+  📸 Follow on Instagram
+</a>
       </section>
 
       {/* FAQ */}
