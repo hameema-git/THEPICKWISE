@@ -22,7 +22,7 @@ export default function Disclosure() {
           <p>The 👍 and 👎 buttons on each product reflect real visitor feedback. Use them to help others make better buying decisions.</p>
 
           <h2>Questions?</h2>
-          <p>Reach out at <a href="mailto:hello@thepickwise.in" className={styles.emailLink}>hello@thepickwise.in</a></p>
+          <p>Reach out at <a href="mailto:codeleaf.tech@gmail.com" className={styles.emailLink}>codeleaf.tech@gmail.com</a></p>
         </div>
       </div>
     </div>
