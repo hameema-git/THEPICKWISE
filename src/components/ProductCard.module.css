@@ -8,6 +8,7 @@
 .carouselDot { width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,0.6); transition:all 0.2s; }
 .carouselDotActive { background:#fff; width:12px; border-radius:3px; }
 .badges { position:absolute; top:10px; left:10px; display:flex; flex-direction:column; gap:4px; z-index:2; }
+.statusBadge { position:absolute; top:10px; right:10px; z-index:2; background:#1a1a2e; color:#fff; font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; padding:4px 9px; border-radius:6px; }
 .badge { font-size:0.65rem; font-weight:700; padding:3px 9px; border-radius:20px; backdrop-filter:blur(6px); width:fit-content; }
 .deal { background:rgba(255,209,102,0.95); color:#7c4a00; }
 .new  { background:rgba(6,214,160,0.95);   color:#064e3b; }

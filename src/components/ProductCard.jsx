@@ -100,6 +100,8 @@ export default function ProductCard({ product, onVideoOpen }) {
             ))}
           </div>
         )}
+        {product.status === 'out_of_stock' && <span className={styles.statusBadge}>Out of Stock</span>}
+        {product.status === 'discontinued' && <span className={styles.statusBadge}>Discontinued</span>}
         <div className={styles.badges}>
           {(product.badges || []).slice(0,2).map(b => BADGE_MAP[b] && (
             <span key={b} className={`${styles.badge} ${styles[BADGE_MAP[b].cls]}`}>{BADGE_MAP[b].label}</span>

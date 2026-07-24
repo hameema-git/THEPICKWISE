@@ -81,6 +81,14 @@
 .ctas { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.2rem; }
 .btnBuy { flex: 1; color: #fff; border-radius: 12px; padding: 0.8rem 1.25rem; font-size: 0.92rem; font-weight: 700; text-align: center; transition: all 0.2s; box-shadow: 0 4px 14px rgba(0,0,0,0.15); min-width: 140px; text-decoration: none; display: inline-block; }
 .btnBuy:hover { filter: brightness(0.88); transform: translateY(-1px); }
+
+.discontinuedNotice { background:#fff7ed; border:1.5px solid #fed7aa; border-radius:12px; padding:1.1rem 1.25rem; }
+.discontinuedTitle { font-weight:700; color:#9a3412; font-size:0.95rem; margin-bottom:0.5rem; }
+.discontinuedSub { font-size:0.85rem; color:#9a3412; opacity:0.85; }
+.replacementLink { display:inline-block; background:#e63946; color:#fff; font-weight:700; font-size:0.88rem; padding:0.7rem 1.1rem; border-radius:10px; text-decoration:none; }
+.replacementLink:hover { filter:brightness(0.92); }
+
+.outOfStockNotice { font-size:0.83rem; color:#9a3412; background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; padding:0.65rem 0.9rem; margin-bottom:0.2rem; }
 .btnVideo { background: #f8fafc; border: 1.5px solid #e2e8f0; color: #1a1a2e; border-radius: 12px; padding: 0.8rem 1.25rem; font-size: 0.88rem; font-weight: 600; transition: all 0.2s; cursor: pointer; font-family: inherit; }
 .btnVideo:hover { background: #fff8f0; border-color: #f4a261; }
 

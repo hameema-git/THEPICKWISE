@@ -175,24 +175,40 @@ export default function ProductDetail() {
               </div>
             </div>
 
-            <div className={styles.ctas}>
-              <a href={product.affiliate_link} target="_blank" rel="nofollow noopener noreferrer"
-                className={styles.btnBuy} style={{ background:shop.bg }} onClick={handleBuyClick}>
-                Buy on {product.shop} →
-              </a>
-              {videos.map((v) => (
-                <button
-                  key={v.platform}
-                  className={styles.btnVideo}
-                  onClick={() =>
-                    setVideo({
-                      url: v.embedUrl,
-                      credit: product.video_credit,
-                      platform: v.platform,
-                    })
-                  }
-                >
-                  ▶ Watch on{" "}
+            {product.status === 'discontinued' ? (
+              <div className={styles.discontinuedNotice}>
+                <p className={styles.discontinuedTitle}>⚠️ This product has been discontinued</p>
+                {product.replacement ? (
+                  <a href={`/product/${product.replacement.id}`} className={styles.replacementLink}>
+                    See {product.replacement.name} instead →
+                  </a>
+                ) : (
+                  <p className={styles.discontinuedSub}>Check back later, or browse similar products below.</p>
+                )}
+              </div>
+            ) : (
+              <>
+                {product.status === 'out_of_stock' && (
+                  <p className={styles.outOfStockNotice}>⚠️ Currently out of stock at {product.shop} — link still works if it's back.</p>
+                )}
+                <div className={styles.ctas}>
+                  <a href={product.affiliate_link} target="_blank" rel="nofollow noopener noreferrer"
+                    className={styles.btnBuy} style={{ background:shop.bg }} onClick={handleBuyClick}>
+                    Buy on {product.shop} →
+                  </a>
+                  {videos.map((v) => (
+                    <button
+                      key={v.platform}
+                      className={styles.btnVideo}
+                      onClick={() =>
+                        setVideo({
+                          url: v.embedUrl,
+                          credit: product.video_credit,
+                          platform: v.platform,
+                        })
+                      }
+                    >
+                      ▶ Watch on{" "}
                   {v.platform === "instagram"
                     ? "Instagram"
                     : v.platform === "youtube"
@@ -201,6 +217,8 @@ export default function ProductDetail() {
                 </button>
               ))}
             </div>
+              </>
+            )}
 
             {product.video_credit && <p className={styles.credit}>📹 Video by <strong>{product.video_credit}</strong></p>}
 

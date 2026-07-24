@@ -11,7 +11,7 @@ const EMPTY = {
   name: '', category_id: '', price: '', original_price: '', savings: '',
   shop: 'Meesho', rating: 4.5, reviews_count: 100, affiliate_link: '',
   image_url: '', image_urls: [], review: '', video_link: '', video_link_youtube: '', video_link_instagram: '', video_credit: '',
-  badges: [], is_pick: false, is_published: true,
+  badges: [], is_pick: false, is_published: true, status: 'active', replacement_product_id: '',
 }
 
 export default function ProductForm() {
@@ -26,6 +26,13 @@ export default function ProductForm() {
   const [error, setError] = useState('')
   const [showNewCategory, setShowNewCategory] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState('')
+  const [otherProducts, setOtherProducts] = useState([])
+
+  useEffect(() => {
+    productsService.getAll({ published: 'published' }).then((res) => {
+      setOtherProducts(res.data.filter((p) => p.id !== id))
+    }).catch(() => {})
+  }, [id])
 
   useEffect(() => {
     if (!isEdit) return
@@ -38,7 +45,8 @@ export default function ProductForm() {
         review: p.review || '', video_link: p.video_link || '',
         video_link_youtube: p.video_link_youtube || '', video_link_instagram: p.video_link_instagram || '',
         video_credit: p.video_credit || '', badges: p.badges || [], is_pick: p.is_pick || false,
-        is_published: p.is_published ?? true,
+        is_published: p.is_published ?? true, status: p.status || 'active',
+        replacement_product_id: p.replacement_product_id || '',
       })
       setLoading(false)
     })
@@ -73,7 +81,11 @@ export default function ProductForm() {
     }
     setSaving(true)
     try {
-      const payload = { ...form, category_id: form.category_id || null }
+      const payload = {
+        ...form,
+        category_id: form.category_id || null,
+        replacement_product_id: form.status === 'discontinued' && form.replacement_product_id ? form.replacement_product_id : null,
+      }
       if (isEdit) {
         await productsService.update(id, payload)
       } else {
@@ -202,6 +214,28 @@ export default function ProductForm() {
             ))}
           </div>
         </div>
+
+        <label className={styles.field}>
+          <span>Status</span>
+          <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}>
+            <option value="active">✅ Active</option>
+            <option value="out_of_stock">⚠️ Out of Stock</option>
+            <option value="discontinued">🚫 Discontinued</option>
+          </select>
+        </label>
+
+        {form.status === 'discontinued' && (
+          <label className={styles.field}>
+            <span>Replacement Product (optional)</span>
+            <select value={form.replacement_product_id} onChange={(e) => setForm((f) => ({ ...f, replacement_product_id: e.target.value }))}>
+              <option value="">No replacement — just show a discontinued notice</option>
+              {otherProducts.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+            <small className={styles.hint}>Visitors on this product's page will be pointed to the replacement instead of a broken buy link.</small>
+          </label>
+        )}
 
         <div className={styles.toggleGrid}>
           <label className={styles.switchRow}>

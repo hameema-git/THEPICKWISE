@@ -88,6 +88,8 @@ export default function Products() {
                 <div className={styles.cardImgWrap}>
                   {p.image_url && <img src={p.image_url} alt={p.name} onError={(e) => (e.target.style.visibility = 'hidden')} />}
                   {!p.is_published && <span className={styles.draftBadge}>Draft</span>}
+                  {p.status === 'out_of_stock' && <span className={styles.statusBadgeStudio}>Out of Stock</span>}
+                  {p.status === 'discontinued' && <span className={styles.statusBadgeStudio}>Discontinued</span>}
                 </div>
                 <div className={styles.cardBody}>
                   <span className={styles.cardName}>{p.name}</span>

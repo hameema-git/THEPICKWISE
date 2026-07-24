@@ -15,7 +15,10 @@ const FAQS = [
 ]
 
 export default function Home() {
-  const { filtered, picks, category, setCategory, search, setSearch, loading } = useProducts()
+  const {
+    filtered, picks, trending, category, setCategory, search, setSearch,
+    loading, loadingMore, hasMore, loadMore, total,
+  } = useProducts()
   const { categories } = useCategories()
   const [video, setVideo]   = useState(null)
   const [openFaq, setOpenFaq] = useState(null)
@@ -59,7 +62,7 @@ export default function Home() {
 
       {/* STATS */}
       <section className={styles.statsBar}>
-        <div className={styles.stat}><span className={styles.statN}>{filtered.length}+</span><span className={styles.statL}>Products Reviewed</span></div>
+        <div className={styles.stat}><span className={styles.statN}>{total}+</span><span className={styles.statL}>Products Reviewed</span></div>
         <div className={styles.stat}><span className={styles.statN}>100%</span><span className={styles.statL}>Personally Tested</span></div>
         <div className={styles.stat}><span className={styles.statN}>0</span><span className={styles.statL}>Paid Promotions</span></div>
       </section>
@@ -74,6 +77,20 @@ export default function Home() {
           </div>
           <div className={styles.grid}>
             {picks.slice(0,4).map(p=><ProductCard key={p.id} product={p} onVideoOpen={(u,c,plat)=>setVideo({url:u,credit:c,platform:plat})}/>)}
+          </div>
+        </section>
+      )}
+
+      {/* TRENDING — only shown once there's real click data behind it */}
+      {trending.length > 0 && (
+        <section className={styles.section} id="trending">
+          <div className={styles.sectionHead}>
+            <span className={styles.tag}>🔥 Trending</span>
+            <h2 className={styles.sectionTitle}>Most Clicked This Month</h2>
+            <p className={styles.sectionSub}>What other visitors are actually buying right now.</p>
+          </div>
+          <div className={styles.grid}>
+            {trending.map(p=><ProductCard key={p.id} product={p} onVideoOpen={(u,c,plat)=>setVideo({url:u,credit:c,platform:plat})}/>)}
           </div>
         </section>
       )}
@@ -104,7 +121,7 @@ export default function Home() {
         </div>
 
         <p className={styles.resultCount}>
-          {loading ? 'Loading…' : `${filtered.length} product${filtered.length===1?'':'s'}`}
+          {loading ? 'Loading…' : `${total} product${total===1?'':'s'}`}
         </p>
 
         {loading
@@ -115,9 +132,16 @@ export default function Home() {
               <p className={styles.emptyTitle}>No products found</p>
               <button className={styles.btnPrimary} onClick={()=>{setSearch('');setCategory('all')}}>Clear filters</button>
             </div>
-          : <div className={styles.grid}>
-              {filtered.map(p=><ProductCard key={p.id} product={p} onVideoOpen={(u,c,plat)=>setVideo({url:u,credit:c,platform:plat})}/>)}
-            </div>
+          : <>
+              <div className={styles.grid}>
+                {filtered.map(p=><ProductCard key={p.id} product={p} onVideoOpen={(u,c,plat)=>setVideo({url:u,credit:c,platform:plat})}/>)}
+              </div>
+              {hasMore && (
+                <button className={styles.loadMoreBtn} onClick={loadMore} disabled={loadingMore}>
+                  {loadingMore ? 'Loading…' : `Load more (${total - filtered.length} remaining)`}
+                </button>
+              )}
+            </>
         }
       </section>
 
