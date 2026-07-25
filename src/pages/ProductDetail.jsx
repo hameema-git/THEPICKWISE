@@ -86,11 +86,13 @@ export default function ProductDetail() {
   return (
     <>
       <Seo
-        title={product.name}
-        description={product.review?.slice(0, 155)}
+        title={product.seo_title || product.name}
+        description={product.seo_description || (product.review_summary || product.review)?.slice(0, 155)}
+        keywords={product.seo_keywords}
         path={`/product/${product.id}`}
         image={product.image_url}
         product={product}
+        rawTitle={Boolean(product.seo_title)}
       />
       <div className={styles.breadcrumb}>
         <div className={styles.container}>
@@ -157,10 +159,40 @@ export default function ProductDetail() {
               {product.savings && <span className={styles.priceSave}>{product.savings}</span>}
             </div>
 
-            <div className={styles.reviewBlock}>
-              <div className={styles.reviewLabel}>✍️ My honest review</div>
-              <p className={styles.reviewText}>{product.review}</p>
-            </div>
+            {product.review_summary && (
+              <p className={styles.reviewSummary}>{product.review_summary}</p>
+            )}
+
+            {product.review && (
+              <div className={styles.reviewBlock}>
+                <div className={styles.reviewLabel}>✍️ My Experience</div>
+                <p className={styles.reviewText}>{product.review}</p>
+              </div>
+            )}
+
+            {(product.review_pros?.length > 0 || product.review_cons?.length > 0) && (
+              <div className={styles.prosConsGrid}>
+                {product.review_pros?.length > 0 && (
+                  <div className={styles.prosBlock}>
+                    <div className={styles.prosConsLabel}>Pros</div>
+                    <ul>{product.review_pros.map((p, i) => <li key={i}>✓ {p}</li>)}</ul>
+                  </div>
+                )}
+                {product.review_cons?.length > 0 && (
+                  <div className={styles.consBlock}>
+                    <div className={styles.prosConsLabel}>Cons</div>
+                    <ul>{product.review_cons.map((c, i) => <li key={i}>✕ {c}</li>)}</ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {product.review_verdict && (
+              <div className={styles.verdictBlock}>
+                <span className={styles.verdictLabel}>Final Verdict</span>
+                <p>{product.review_verdict}</p>
+              </div>
+            )}
 
             {/* Community votes */}
             <div className={styles.voteSection}>

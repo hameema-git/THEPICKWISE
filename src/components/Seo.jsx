@@ -47,7 +47,7 @@ function setJsonLd(id, data) {
  * particular) may still see the static tags from index.html instead of these.
  * Google, Bing, and most modern link previews do execute JS and will see this.
  */
-export default function Seo({ title, description, path = '/', image, product, rawTitle = false }) {
+export default function Seo({ title, description, path = '/', image, product, rawTitle = false, keywords }) {
   useEffect(() => {
     const fullTitle = !title
       ? 'thePickWise – Tested by Me. Trusted for You.'
@@ -57,6 +57,7 @@ export default function Seo({ title, description, path = '/', image, product, ra
 
     document.title = fullTitle
     setMeta('name', 'description', description)
+    setMeta('name', 'keywords', keywords)
     setLink('canonical', url)
 
     setMeta('property', 'og:title', fullTitle)
@@ -71,18 +72,23 @@ export default function Seo({ title, description, path = '/', image, product, ra
     setMeta('name', 'twitter:image', img)
 
     if (product) {
+      const availability = {
+        out_of_stock: 'https://schema.org/OutOfStock',
+        discontinued: 'https://schema.org/Discontinued',
+      }[product.status] || 'https://schema.org/InStock'
+
       setJsonLd('product-schema', {
         '@context': 'https://schema.org/',
         '@type': 'Product',
         name: product.name,
         image: product.image_url,
-        description: product.review,
+        description: product.review_summary || product.review,
         offers: {
           '@type': 'Offer',
           url,
           priceCurrency: 'INR',
           price: (product.price || '').replace(/[^0-9.]/g, '') || undefined,
-          availability: 'https://schema.org/InStock',
+          availability,
         },
         ...(product.rating ? {
           aggregateRating: {
@@ -95,7 +101,7 @@ export default function Seo({ title, description, path = '/', image, product, ra
     } else {
       setJsonLd('product-schema', null)
     }
-  }, [title, description, path, image, product, rawTitle])
+  }, [title, description, path, image, product, rawTitle, keywords])
 
   return null
 }

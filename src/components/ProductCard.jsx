@@ -133,7 +133,7 @@ export default function ProductCard({ product, onVideoOpen }) {
 
         <h3 className={styles.title}>{product.name}</h3>
 
-        <p className={styles.review}>{product.review}</p>
+        <p className={styles.review}>{product.review_summary || product.review}</p>
 
         <div className={styles.metaRow}>
           <Stars rating={product.rating} />
