@@ -5,6 +5,7 @@ import PhotoUploader from '../../components/studio/PhotoUploader'
 import { useCategories } from '../../hooks/useCategories'
 import * as productsService from '../../services/productsService'
 import * as categoriesService from '../../services/categoriesService'
+import { validateProductForm } from '../../utils/productValidation'
 import styles from './ProductForm.module.css'
 
 const EMPTY = {
@@ -26,6 +27,7 @@ export default function ProductForm() {
   const [loading, setLoading] = useState(isEdit)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({})
   const [showNewCategory, setShowNewCategory] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState('')
   const [showSeo, setShowSeo] = useState(false)
@@ -41,9 +43,9 @@ export default function ProductForm() {
     if (!isEdit) return
     productsService.getById(id).then((p) => {
       setForm({
-        name: p.name || '', category_id: p.category_id || '', price: p.price || '',
-        original_price: p.original_price || '', savings: p.savings || '', shop: p.shop || 'Meesho',
-        rating: p.rating || 4.5, reviews_count: p.reviews_count || 0, affiliate_link: p.affiliate_link || '',
+        name: p.name || '', category_id: p.category_id || '', price: p.price ?? '',
+        original_price: p.original_price ?? '', savings: p.savings || '', shop: p.shop || 'Meesho',
+        rating: p.rating ?? 4.5, reviews_count: p.reviews_count ?? 0, affiliate_link: p.affiliate_link || '',
         image_url: p.image_url || '', image_urls: p.image_urls?.length ? p.image_urls : (p.image_url ? [p.image_url] : []),
         review: p.review || '', review_summary: p.review_summary || '',
         review_pros: p.review_pros || [], review_cons: p.review_cons || [], review_verdict: p.review_verdict || '',
@@ -61,6 +63,32 @@ export default function ProductForm() {
   const handlePhotosChange = (urls) => {
     setForm((f) => ({ ...f, image_urls: urls, image_url: urls[0] || '' }))
   }
+
+  const handleFieldChange = (field, value) => {
+    const nextForm = { ...form, [field]: value }
+    setForm(nextForm)
+    setFieldErrors((errors) => {
+      if (field === 'price' || field === 'original_price') {
+        const nextErrors = validateProductForm(nextForm)
+        return {
+          ...errors,
+          price: nextErrors.price,
+          original_price: nextErrors.original_price,
+        }
+      }
+      if (!errors[field] && !(field === 'price' && errors.original_price)) return errors
+      const nextErrors = validateProductForm(nextForm)
+      return { ...errors, [field]: nextErrors[field] }
+    })
+  }
+
+  const inputErrorProps = (field) => fieldErrors[field]
+    ? { 'aria-invalid': true, 'aria-describedby': `${field}-error`, style: { borderColor: 'var(--red)' } }
+    : {}
+
+  const renderFieldError = (field) => fieldErrors[field] && (
+    <small id={`${field}-error`} role="alert" style={{ color: 'var(--red-dark)' }}>{fieldErrors[field]}</small>
+  )
 
   const toggleBadge = (badge) => {
     setForm((f) => ({
@@ -97,15 +125,16 @@ export default function ProductForm() {
     if (!f.affiliate_link) missing.push('Affiliate Link')
     if (!f.review && !f.review_summary) missing.push('Review (Summary or Experience)')
     if (!f.category_id) missing.push('Category')
-    if (!f.price) missing.push('Price')
+    if (f.price === '' || f.price === null || f.price === undefined) missing.push('Price')
     return missing
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    if (!form.name || !form.price || !form.affiliate_link) {
-      setError('Name, Price, and Affiliate Link are required.')
+    const validationErrors = validateProductForm(form)
+    setFieldErrors(validationErrors)
+    if (Object.keys(validationErrors).length > 0) {
       return
     }
     if (form.is_published) {
@@ -119,6 +148,7 @@ export default function ProductForm() {
     try {
       const payload = {
         ...form,
+        name: form.name.trim(),
         category_id: form.category_id || null,
         replacement_product_id: form.status === 'discontinued' && form.replacement_product_id ? form.replacement_product_id : null,
       }
@@ -138,12 +168,13 @@ export default function ProductForm() {
 
   return (
     <StudioLayout title={isEdit ? 'Edit Product' : 'Add Product'}>
-      <form className={styles.form} onSubmit={handleSubmit}>
+      <form className={styles.form} onSubmit={handleSubmit} noValidate>
         {error && <div className={styles.error}>{error}</div>}
 
         <label className={styles.field}>
           <span>Product Name *</span>
-          <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required />
+          <input value={form.name} onChange={(e) => handleFieldChange('name', e.target.value)} {...inputErrorProps('name')} />
+          {renderFieldError('name')}
         </label>
 
         <label className={styles.field}>
@@ -174,11 +205,13 @@ export default function ProductForm() {
         <div className={styles.row2}>
           <label className={styles.field}>
             <span>Price *</span>
-            <input value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} placeholder="₹999" required />
+            <input value={form.price} onChange={(e) => handleFieldChange('price', e.target.value)} placeholder="₹999" {...inputErrorProps('price')} />
+            {renderFieldError('price')}
           </label>
           <label className={styles.field}>
             <span>Original Price</span>
-            <input value={form.original_price} onChange={(e) => setForm((f) => ({ ...f, original_price: e.target.value }))} placeholder="₹1,999" />
+            <input value={form.original_price} onChange={(e) => handleFieldChange('original_price', e.target.value)} placeholder="₹1,999" {...inputErrorProps('original_price')} />
+            {renderFieldError('original_price')}
           </label>
         </div>
 
@@ -200,15 +233,17 @@ export default function ProductForm() {
         <div className={styles.row2}>
           <label className={styles.field}>
             <span>Rating (1–5)</span>
-            <input type="number" min="1" max="5" step="0.1" value={form.rating}
-              onChange={(e) => setForm((f) => ({ ...f, rating: e.target.value === '' ? '' : Number(e.target.value) }))}
-              placeholder="4.5" />
+            <input type="number" min="0" max="5" step="0.1" value={form.rating}
+              onChange={(e) => handleFieldChange('rating', e.target.value === '' ? '' : Number(e.target.value))}
+              placeholder="4.5" {...inputErrorProps('rating')} />
+            {renderFieldError('rating')}
           </label>
           <label className={styles.field}>
             <span>Review Count</span>
             <input type="number" min="0" step="1" value={form.reviews_count}
-              onChange={(e) => setForm((f) => ({ ...f, reviews_count: e.target.value === '' ? '' : Number(e.target.value) }))}
-              placeholder="100" />
+              onChange={(e) => handleFieldChange('reviews_count', e.target.value === '' ? '' : Number(e.target.value))}
+              placeholder="100" {...inputErrorProps('reviews_count')} />
+            {renderFieldError('reviews_count')}
           </label>
         </div>
 
@@ -217,10 +252,11 @@ export default function ProductForm() {
           <input
             type="url"
             value={form.affiliate_link}
-            onChange={(e) => setForm((f) => ({ ...f, affiliate_link: e.target.value }))}
+            onChange={(e) => handleFieldChange('affiliate_link', e.target.value)}
             placeholder="Paste your Amazon/Meesho/Flipkart affiliate link"
-            required
+            {...inputErrorProps('affiliate_link')}
           />
+          {renderFieldError('affiliate_link')}
         </label>
 
         <label className={styles.field}>
@@ -279,11 +315,13 @@ export default function ProductForm() {
         <div className={styles.row2}>
           <label className={styles.field}>
             <span>YouTube Video Link</span>
-            <input type="url" value={form.video_link_youtube} onChange={(e) => setForm((f) => ({ ...f, video_link_youtube: e.target.value }))} placeholder="youtube.com/watch?v=... (optional)" />
+            <input type="url" value={form.video_link_youtube} onChange={(e) => handleFieldChange('video_link_youtube', e.target.value)} placeholder="youtube.com/watch?v=... (optional)" {...inputErrorProps('video_link_youtube')} />
+            {renderFieldError('video_link_youtube')}
           </label>
           <label className={styles.field}>
             <span>Instagram Reel Link</span>
-            <input type="url" value={form.video_link_instagram} onChange={(e) => setForm((f) => ({ ...f, video_link_instagram: e.target.value }))} placeholder="instagram.com/reel/... (optional)" />
+            <input type="url" value={form.video_link_instagram} onChange={(e) => handleFieldChange('video_link_instagram', e.target.value)} placeholder="instagram.com/reel/... (optional)" {...inputErrorProps('video_link_instagram')} />
+            {renderFieldError('video_link_instagram')}
           </label>
         </div>
         <small className={styles.hint}>Add either one, or both — visitors will see a button for each video you add.</small>
