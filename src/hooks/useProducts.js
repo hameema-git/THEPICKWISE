@@ -4,6 +4,7 @@ import * as publicProductsService from '../services/publicProductsService'
 export function useProducts() {
   const [category, setCategoryState] = useState('all')
   const [search, setSearchState] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [filtered, setFiltered] = useState([])
   const [picks, setPicks] = useState([])
   const [trending, setTrending] = useState([])
@@ -17,7 +18,7 @@ export function useProducts() {
     if (append) setLoadingMore(true)
     else setLoading(true)
     try {
-      const productsResult = await publicProductsService.getAll({ categoryId: category, search, page: targetPage })
+      const productsResult = await publicProductsService.getAll({ categoryId: category, search: debouncedSearch, page: targetPage })
       setFiltered((prev) => (append ? [...prev, ...productsResult.data] : productsResult.data))
       setHasMore(productsResult.hasMore)
       setTotal(productsResult.count)
@@ -35,13 +36,18 @@ export function useProducts() {
       setLoading(false)
       setLoadingMore(false)
     }
-  }, [category, search])
+  }, [category, debouncedSearch])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(search), 300)
+    return () => window.clearTimeout(timer)
+  }, [search])
 
   // Filters changed — reset to page 0 and replace the list.
   useEffect(() => {
     setPage(0)
     load(0, false)
-  }, [category, search]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [category, debouncedSearch]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadMore = () => {
     const nextPage = page + 1

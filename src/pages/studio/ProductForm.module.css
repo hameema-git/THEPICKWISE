@@ -22,6 +22,7 @@
   font-weight: 600;
 }
 .field small { font-weight: 400; color: var(--muted); font-size: 0.78rem; }
+.importedField { border-left: 3px solid var(--red); padding-left: 0.65rem; }
 
 .field input,
 .field select,
@@ -66,6 +67,8 @@
   border-radius: var(--radius-sm);
   white-space: nowrap;
 }
+.categorySuggestion { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-top: .5rem; padding: .55rem .65rem; background: #fff6df; border-radius: var(--radius-sm); font-size: .82rem; font-weight: 400; }
+.categorySuggestion button { padding: .4rem .6rem; border-radius: var(--radius-sm); background: #fff; border: 1px solid var(--border); font-weight: 700; white-space: nowrap; }
 
 .imgPreview {
   margin-top: 0.5rem;

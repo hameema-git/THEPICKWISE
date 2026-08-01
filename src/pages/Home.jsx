@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useProducts } from '../hooks/useProducts'
 import { useCategories } from '../hooks/useCategories'
 import * as settingsService from '../services/settingsService'
 import ProductCard from '../components/ProductCard'
 import VideoModal from '../components/VideoModal'
 import Seo from '../components/Seo'
+import SearchAutocomplete from '../components/SearchAutocomplete'
 import styles from './Home.module.css'
 
 const FAQS = [
@@ -23,6 +24,7 @@ export default function Home() {
   const [video, setVideo]   = useState(null)
   const [openFaq, setOpenFaq] = useState(null)
   const [settings, setSettings] = useState(null)
+  const searchPlaceholders = useMemo(() => [...new Set([...filtered, ...picks].map((product) => product.name).filter(Boolean))].slice(0, 5), [filtered, picks])
 
   useEffect(() => { settingsService.get().then(setSettings).catch(() => {}) }, [])
 
@@ -96,30 +98,38 @@ export default function Home() {
       )}
 
       {/* CATEGORY NAV + SEARCH */}
-      <section className={styles.section} id="products">
-        <div className={styles.catBar}>
-          <div className={styles.catScroll}>
-            <button
-              className={`${styles.catBtn} ${category==='all'?styles.catActive:''}`}
-              onClick={()=>setCategory('all')}>
-              🌟 All
-            </button>
-            {categories.map(c=>(
-              <button key={c.id}
-                className={`${styles.catBtn} ${category===c.id?styles.catActive:''}`}
-                onClick={()=>setCategory(c.id)}>
-                {c.emoji} {c.name}
-              </button>
-            ))}
-          </div>
-          <div className={styles.searchBox}>
-            <span>🔍</span>
-            <input type="text" placeholder="Search products..." value={search}
-              onChange={e=>setSearch(e.target.value)} />
-            {search && <button onClick={()=>setSearch('')} className={styles.clearSearch}>✕</button>}
-          </div>
-        </div>
+  <section className={styles.section} id="products">
 
+  {/* Search */}
+  <div className={styles.searchSection}>
+    <SearchAutocomplete
+      value={search}
+      onChange={setSearch}
+      placeholderOptions={searchPlaceholders}
+    />
+  </div>
+
+  {/* Categories */}
+  <div className={styles.catBar}>
+    <div className={styles.catScroll}>
+      <button
+        className={`${styles.catBtn} ${category === "all" ? styles.catActive : ""}`}
+        onClick={() => setCategory("all")}
+      >
+        🌟 All
+      </button>
+
+      {categories.map((c) => (
+        <button
+          key={c.id}
+          className={`${styles.catBtn} ${category === c.id ? styles.catActive : ""}`}
+          onClick={() => setCategory(c.id)}
+        >
+          {c.emoji} {c.name}
+        </button>
+      ))}
+    </div>
+  </div>
         <p className={styles.resultCount}>
           {loading ? 'Loading…' : `${total} product${total===1?'':'s'}`}
         </p>

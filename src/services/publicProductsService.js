@@ -35,6 +35,16 @@ export async function getAll({ categoryId = null, search = '', page = 0, pageSiz
   return { data, count, hasMore: to + 1 < count }
 }
 
+export async function searchSuggestions(search, limit = 6) {
+  const query = String(search || '').trim()
+  if (!query) return []
+  const { data, error } = await supabase.from(TABLE).select('id, name, categories(name)')
+    .eq('is_published', true).neq('status', 'discontinued').ilike('name', `%${query}%`)
+    .order('name', { ascending: true }).limit(limit)
+  if (error) throw error
+  return data || []
+}
+
 export async function getPicks() {
   const { data, error } = await supabase
     .from(TABLE)

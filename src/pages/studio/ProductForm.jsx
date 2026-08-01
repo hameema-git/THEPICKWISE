@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import StudioLayout from '../../components/studio/StudioLayout'
 import PhotoUploader from '../../components/studio/PhotoUploader'
+import JsonImportPanel from '../../components/studio/JsonImportPanel'
 import { useCategories } from '../../hooks/useCategories'
 import * as productsService from '../../services/productsService'
 import * as categoriesService from '../../services/categoriesService'
@@ -32,6 +33,8 @@ export default function ProductForm() {
   const [newCategoryName, setNewCategoryName] = useState('')
   const [showSeo, setShowSeo] = useState(false)
   const [otherProducts, setOtherProducts] = useState([])
+  const [importedFields, setImportedFields] = useState([])
+  const [suggestedCategoryName, setSuggestedCategoryName] = useState('')
 
   useEffect(() => {
     productsService.getAll({ published: 'published' }).then((res) => {
@@ -119,6 +122,27 @@ export default function ProductForm() {
     setShowNewCategory(false)
   }
 
+  const handleImport = ({ product, importedFields: fields, categoryName, categoryMatch }) => {
+    setForm((current) => ({ ...current, ...product, ...(categoryMatch?.exact ? { category_id: categoryMatch.category.id } : {}) }))
+    setImportedFields(categoryName ? [...fields, 'category_id'] : fields)
+    setSuggestedCategoryName(categoryMatch?.exact ? '' : categoryName)
+    setShowSeo(Boolean(product.seo_title || product.seo_description || product.seo_keywords))
+    setError('')
+  }
+
+  const handleCreateSuggestedCategory = async () => {
+    const name = suggestedCategoryName.trim()
+    if (!name || !window.confirm(`Create the new category “${name}”?`)) return
+    try {
+      const category = await categoriesService.create({ name })
+      await refreshCategories()
+      setForm((current) => ({ ...current, category_id: category.id }))
+      setSuggestedCategoryName('')
+    } catch (err) { setError(err.message || 'Could not create this category.') }
+  }
+
+  const fieldClassName = (field) => `${styles.field} ${importedFields.includes(field) ? styles.importedField : ''}`
+
   const getMissingForPublish = (f) => {
     const missing = []
     if (!f.image_urls || f.image_urls.length === 0) missing.push('Product Photo')
@@ -168,16 +192,17 @@ export default function ProductForm() {
 
   return (
     <StudioLayout title={isEdit ? 'Edit Product' : 'Add Product'}>
+      {!isEdit && <JsonImportPanel categories={categories} onImport={handleImport} />}
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
         {error && <div className={styles.error}>{error}</div>}
 
-        <label className={styles.field}>
+        <label className={fieldClassName('name')}>
           <span>Product Name *</span>
           <input value={form.name} onChange={(e) => handleFieldChange('name', e.target.value)} {...inputErrorProps('name')} />
           {renderFieldError('name')}
         </label>
 
-        <label className={styles.field}>
+        <label className={fieldClassName('category_id')}>
           <span>Category</span>
           <div className={styles.categoryRow}>
             <select value={form.category_id} onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}>
@@ -200,15 +225,16 @@ export default function ProductForm() {
               <button type="button" className={styles.newCatConfirm} onClick={handleCreateCategory}>Create</button>
             </div>
           )}
+          {suggestedCategoryName && <div className={styles.categorySuggestion}><span>Imported category: <strong>{suggestedCategoryName}</strong></span><button type="button" onClick={handleCreateSuggestedCategory}>Create category</button></div>}
         </label>
 
         <div className={styles.row2}>
-          <label className={styles.field}>
+          <label className={fieldClassName('price')}>
             <span>Price *</span>
             <input value={form.price} onChange={(e) => handleFieldChange('price', e.target.value)} placeholder="₹999" {...inputErrorProps('price')} />
             {renderFieldError('price')}
           </label>
-          <label className={styles.field}>
+          <label className={fieldClassName('original_price')}>
             <span>Original Price</span>
             <input value={form.original_price} onChange={(e) => handleFieldChange('original_price', e.target.value)} placeholder="₹1,999" {...inputErrorProps('original_price')} />
             {renderFieldError('original_price')}
@@ -216,11 +242,11 @@ export default function ProductForm() {
         </div>
 
         <div className={styles.row2}>
-          <label className={styles.field}>
+          <label className={fieldClassName('savings')}>
             <span>Savings</span>
             <input value={form.savings} onChange={(e) => setForm((f) => ({ ...f, savings: e.target.value }))} placeholder="50% off" />
           </label>
-          <label className={styles.field}>
+          <label className={fieldClassName('shop')}>
             <span>Shop *</span>
             <select value={form.shop} onChange={(e) => setForm((f) => ({ ...f, shop: e.target.value }))}>
               <option>Amazon</option>
@@ -231,14 +257,14 @@ export default function ProductForm() {
         </div>
 
         <div className={styles.row2}>
-          <label className={styles.field}>
+          <label className={fieldClassName('rating')}>
             <span>Rating (1–5)</span>
             <input type="number" min="0" max="5" step="0.1" value={form.rating}
               onChange={(e) => handleFieldChange('rating', e.target.value === '' ? '' : Number(e.target.value))}
               placeholder="4.5" {...inputErrorProps('rating')} />
             {renderFieldError('rating')}
           </label>
-          <label className={styles.field}>
+          <label className={fieldClassName('reviews_count')}>
             <span>Review Count</span>
             <input type="number" min="0" step="1" value={form.reviews_count}
               onChange={(e) => handleFieldChange('reviews_count', e.target.value === '' ? '' : Number(e.target.value))}
@@ -247,7 +273,7 @@ export default function ProductForm() {
           </label>
         </div>
 
-        <label className={styles.field}>
+        <label className={fieldClassName('affiliate_link')}>
           <span>Affiliate Link *</span>
           <input
             type="url"
@@ -259,24 +285,24 @@ export default function ProductForm() {
           {renderFieldError('affiliate_link')}
         </label>
 
-        <label className={styles.field}>
+        <label className={fieldClassName('image_urls')}>
           <span>Product Photos *</span>
           <PhotoUploader images={form.image_urls} onChange={handlePhotosChange} />
         </label>
 
-        <label className={styles.field}>
+        <label className={fieldClassName('review_summary')}>
           <span>Quick Summary <small>(optional, one line)</small></span>
           <input value={form.review_summary} onChange={(e) => setForm((f) => ({ ...f, review_summary: e.target.value }))}
             placeholder="e.g. Genuinely the best budget earbuds I've tested this year" />
         </label>
 
-        <label className={styles.field}>
+        <label className={fieldClassName('review')}>
           <span>My Experience</span>
           <textarea rows={3} value={form.review} onChange={(e) => setForm((f) => ({ ...f, review: e.target.value }))} />
         </label>
 
         <div className={styles.row2}>
-          <label className={styles.field}>
+          <label className={fieldClassName('review_pros')}>
             <span>Pros</span>
             <div className={styles.listInputRow}>
               <input value={proInput} onChange={(e) => setProInput(e.target.value)}
@@ -290,7 +316,7 @@ export default function ProductForm() {
               ))}
             </ul>
           </label>
-          <label className={styles.field}>
+          <label className={fieldClassName('review_cons')}>
             <span>Cons</span>
             <div className={styles.listInputRow}>
               <input value={conInput} onChange={(e) => setConInput(e.target.value)}
@@ -306,19 +332,19 @@ export default function ProductForm() {
           </label>
         </div>
 
-        <label className={styles.field}>
+        <label className={fieldClassName('review_verdict')}>
           <span>Final Verdict <small>(optional)</small></span>
           <input value={form.review_verdict} onChange={(e) => setForm((f) => ({ ...f, review_verdict: e.target.value }))}
             placeholder="e.g. Worth it if you want great sound under ₹1000" />
         </label>
 
         <div className={styles.row2}>
-          <label className={styles.field}>
+          <label className={fieldClassName('video_link_youtube')}>
             <span>YouTube Video Link</span>
             <input type="url" value={form.video_link_youtube} onChange={(e) => handleFieldChange('video_link_youtube', e.target.value)} placeholder="youtube.com/watch?v=... (optional)" {...inputErrorProps('video_link_youtube')} />
             {renderFieldError('video_link_youtube')}
           </label>
-          <label className={styles.field}>
+          <label className={fieldClassName('video_link_instagram')}>
             <span>Instagram Reel Link</span>
             <input type="url" value={form.video_link_instagram} onChange={(e) => handleFieldChange('video_link_instagram', e.target.value)} placeholder="instagram.com/reel/... (optional)" {...inputErrorProps('video_link_instagram')} />
             {renderFieldError('video_link_instagram')}
@@ -326,12 +352,12 @@ export default function ProductForm() {
         </div>
         <small className={styles.hint}>Add either one, or both — visitors will see a button for each video you add.</small>
 
-        <label className={styles.field}>
+        <label className={fieldClassName('video_credit')}>
           <span>Video Credit</span>
           <input value={form.video_credit} onChange={(e) => setForm((f) => ({ ...f, video_credit: e.target.value }))} placeholder="Channel name" />
         </label>
 
-        <div className={styles.field}>
+        <div className={fieldClassName('badges')}>
           <span>Badges</span>
           <div className={styles.badgeRow}>
             {['deal', 'new', 'fav'].map((b) => (
