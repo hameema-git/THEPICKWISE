@@ -17,6 +17,8 @@ const Products     = lazy(() => import('./pages/studio/Products'))
 const ProductForm  = lazy(() => import('./pages/studio/ProductForm'))
 const Categories   = lazy(() => import('./pages/studio/Categories'))
 const Settings     = lazy(() => import('./pages/studio/Settings'))
+const Articles     = lazy(() => import('./pages/studio/Articles'))
+const Article      = lazy(() => import('./pages/Article'))
 
 function ScrollTop() {
   const { pathname } = useLocation()
@@ -54,6 +56,7 @@ export default function App() {
           <Route path="/"                         element={<Home />} />
           <Route path="/picks"                    element={<Picks />} />
           <Route path="/product/:id"              element={<ProductDetail />} />
+          <Route path="/articles/:slug"           element={<Suspense fallback={<StudioFallback />}><Article /></Suspense>} />
           <Route path="/disclosure"               element={<Disclosure />} />
           <Route path="/privacy"                  element={<Privacy />} />
 
@@ -79,6 +82,7 @@ export default function App() {
           <Route path="/studio/settings" element={
             <ProtectedRoute><Suspense fallback={<StudioFallback />}><Settings /></Suspense></ProtectedRoute>
           } />
+          <Route path="/studio/articles" element={<ProtectedRoute><Suspense fallback={<StudioFallback />}><Articles /></Suspense></ProtectedRoute>} />
 
           <Route path="*"                         element={<NotFound />} />
         </Routes>
